@@ -1,6 +1,7 @@
 use anyhow::Result;
 use tauri::AppHandle;
 
+pub mod constants;
 pub mod downloader;
 
 #[derive(Debug)]

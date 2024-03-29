@@ -1,7 +1,7 @@
+use crate::constants::{DATA_URL, EXTRACTOR_DIR, VERSION_FILE, VERSION_REGEX};
 use anyhow::Result;
 use fs_extra::dir::move_dir;
 use fs_extra::dir::remove;
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::fs::read_to_string;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
@@ -11,14 +11,6 @@ use tempdir::TempDir;
 pub struct Downloader {
     pub version: String,
     pub latest_version: String,
-}
-
-const VERSION_FILE: &str = "version";
-pub const EXTRACTOR_DIR: &str = "dofus/datafus";
-const DATA_URL: &str = "https://github.com/bot4dofus/Datafus/releases";
-
-lazy_static! {
-    static ref VERSION_REGEX: Regex = Regex::new(r"(\d+\.\d+\.\d+)").unwrap();
 }
 
 impl Downloader {

@@ -14,8 +14,9 @@ static INSTANCE: OnceCell<App> = OnceCell::new();
 impl App {
     pub fn new(handler: &AppHandle) -> App {
         App {
-            packet: PacketReader::new().expect("Failed to create PacketReader"),
+            // Must be created before PacketReader
             extractor: DataExtractor::new(handler).expect("Failed to create DataExtractor"),
+            packet: PacketReader::new(handler).expect("Failed to create PacketReader"),
         }
     }
 
