@@ -1,0 +1,2 @@
+- https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/single-instance
+- https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/notification
