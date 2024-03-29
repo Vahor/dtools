@@ -1,26 +1,23 @@
 use anyhow::Result;
 use tauri::AppHandle;
 
+pub mod network;
+pub mod parser;
 pub mod protocol;
 
 #[derive(Debug)]
 pub struct PacketReader {
-    pub whitelist: Vec<String>,
-    protocol: protocol::ProtocolManager,
+    pub network: network::PacketListener,
+    pub protocol: protocol::ProtocolManager,
 }
 
 impl PacketReader {
-    pub fn new(handler: &AppHandle) -> Result<PacketReader> {
+    pub fn new(handle: &AppHandle) -> Result<PacketReader> {
         let instance = PacketReader {
-            whitelist: vec![],
-            protocol: protocol::ProtocolManager::new(handler)?,
+            protocol: protocol::ProtocolManager::new(handle)?,
+            network: network::PacketListener::new(),
         };
 
         return Ok(instance);
-    }
-
-    pub fn sniff(&self, url: &str) -> bool {
-        println!("Sniffing: {}", url);
-        true
     }
 }

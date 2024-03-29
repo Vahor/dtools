@@ -14,18 +14,18 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(handler: &AppHandle) -> Result<Downloader> {
+    pub fn new(handle: &AppHandle) -> Result<Downloader> {
         let mut instance = Downloader {
             version: String::new(),
             latest_version: String::new(),
         };
 
-        instance.get_current_version(handler)?;
+        instance.get_current_version(handle)?;
         instance.get_latest_url()?;
         dbg!(&instance.is_latest());
 
         if !instance.is_latest() {
-            instance.download_latest(handler)?;
+            instance.download_latest(handle)?;
         }
 
         return Ok(instance);
@@ -50,8 +50,8 @@ impl Downloader {
         return Ok(());
     }
 
-    pub fn get_current_version(&mut self, handler: &AppHandle) -> Result<()> {
-        let version_file = handler
+    pub fn get_current_version(&mut self, handle: &AppHandle) -> Result<()> {
+        let version_file = handle
             .path()
             .resolve(VERSION_FILE, BaseDirectory::AppData)?;
 
@@ -76,9 +76,9 @@ impl Downloader {
         self.version == self.latest_version
     }
 
-    pub fn download_latest(&mut self, handler: &AppHandle) -> Result<()> {
+    pub fn download_latest(&mut self, handle: &AppHandle) -> Result<()> {
         let download_url = format!("{}/download/{}/data.zip", DATA_URL, self.latest_version);
-        let temp_dir = TempDir::new(&handler.config().identifier.to_string())
+        let temp_dir = TempDir::new(&handle.config().identifier.to_string())
             .expect("Failed to create temp dir");
 
         let response = reqwest::blocking::get(&download_url)?;
@@ -91,7 +91,7 @@ impl Downloader {
 
         // Unzip data.zip
         let tmp_unzip_dir = temp_dir.path().join("unzip");
-        let dist_folder = handler
+        let dist_folder = handle
             .path()
             .resolve(EXTRACTOR_DIR, BaseDirectory::AppData)?;
         // cleanup dist folder
@@ -121,7 +121,7 @@ impl Downloader {
         }
 
         // Update version file
-        let version_file = handler
+        let version_file = handle
             .path()
             .resolve(VERSION_FILE, BaseDirectory::AppData)?;
         std::fs::write(&version_file, self.latest_version.as_bytes())

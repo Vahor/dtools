@@ -10,9 +10,9 @@ pub struct DataExtractor {
 }
 
 impl DataExtractor {
-    pub fn new(handler: &AppHandle) -> Result<DataExtractor> {
+    pub fn new(handle: &AppHandle) -> Result<DataExtractor> {
         let instance = DataExtractor {
-            downloader: downloader::Downloader::new(handler)?,
+            downloader: downloader::Downloader::new(handle)?,
         };
 
         return Ok(instance);

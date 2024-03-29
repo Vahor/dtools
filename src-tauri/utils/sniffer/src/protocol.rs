@@ -6,7 +6,17 @@ use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_option_number_from_string;
 use tauri::{path::BaseDirectory, AppHandle, Manager};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+pub type FieldName = String;
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum EventName {
+    #[serde(other)]
+    Unknown,
+}
+
+pub type EventId = u16;
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ProtocolVarType {
     UTF,
     VarUhShort,
@@ -28,40 +38,69 @@ pub enum ProtocolVarType {
     False,
 
     #[serde(other)]
-    Other,
+    Unknown,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProtocolEvent {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
-    id: Option<u16>,
-    class_name: String,
-    superclass: Option<String>,
-    attributes: HashMap<String, ProtocolVarType>,
+    pub id: Option<EventId>,
+    #[serde(rename = "class_name")]
+    pub name: EventName,
+    #[serde(rename = "superclass")]
+    pub parent: Option<EventName>,
+    pub attributes: HashMap<FieldName, ProtocolVarType>,
 }
 
 #[derive(Debug)]
-pub struct ProtocolManager {}
+pub struct ProtocolManager {
+    event_by_id: HashMap<EventId, ProtocolEvent>,
+    event_by_class: HashMap<EventName, EventId>,
+}
+
+fn load_protocol(handle: &AppHandle) -> Result<HashMap<EventId, ProtocolEvent>> {
+    let mut event_by_id = HashMap::new();
+    let protocol_file = handle
+        .path()
+        .resolve(EVENTS_FILE.clone(), BaseDirectory::AppData)?;
+
+    assert!(protocol_file.exists(), "Protocol file not found");
+
+    let content = std::fs::read_to_string(&protocol_file)?;
+    let protocol: Vec<ProtocolEvent> = serde_json::from_str(&content)?;
+
+    for event in protocol {
+        if let Some(id) = event.id {
+            event_by_id.insert(id, event);
+        }
+    }
+    return Ok(event_by_id);
+}
 
 impl ProtocolManager {
-    pub fn new(handler: &AppHandle) -> Result<ProtocolManager> {
-        let mut instance = ProtocolManager {};
-        instance.load_protocol(handler)?;
+    pub fn new(handle: &AppHandle) -> Result<ProtocolManager> {
+        let event_by_id = load_protocol(handle)?;
+        let event_by_class: HashMap<EventName, EventId> =
+            event_by_id
+                .iter()
+                .fold(HashMap::new(), |mut map, (id, event)| {
+                    map.insert(event.name.clone(), *id);
+                    return map;
+                });
 
+        let instance = ProtocolManager {
+            event_by_id,
+            event_by_class,
+        };
         return Ok(instance);
     }
 
-    fn load_protocol(&mut self, handler: &AppHandle) -> Result<()> {
-        let protocol_file = handler
-            .path()
-            .resolve(EVENTS_FILE.clone(), BaseDirectory::AppData)?;
+    pub fn get_event(&self, id: &EventId) -> Option<&ProtocolEvent> {
+        self.event_by_id.get(id)
+    }
 
-        assert!(protocol_file.exists(), "Protocol file not found");
-
-        let content = std::fs::read_to_string(&protocol_file)?;
-        let protocol: Vec<ProtocolEvent> = serde_json::from_str(&content)?;
-
-        dbg!(&protocol);
-        return Ok(());
+    pub fn get_event_by_class(&self, class: &EventName) -> Option<&ProtocolEvent> {
+        let id = self.event_by_class.get(class)?;
+        return self.get_event(id);
     }
 }

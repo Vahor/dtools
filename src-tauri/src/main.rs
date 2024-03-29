@@ -1,12 +1,21 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-pub mod app;
-use app::App;
+pub mod state;
+use std::sync::Mutex;
+
+use state::{AppState, WrappedState};
+use tauri::{Manager, State};
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    App::instance().run(name)
+fn greet(state: State<WrappedState>, name: &str) -> String {
+    let state = state.lock().unwrap();
+
+    if let Some(ref state) = *state {
+        state.greet(name)
+    } else {
+        "Bug".to_string()
+    }
 }
 
 fn main() {
@@ -17,15 +26,18 @@ fn main() {
         // .plugin(tauri_plugin_store::init())
         .plugin(tauri_plugin_fs::init());
 
-    app.setup(move |app| {
-        let app = app.handle();
+    let app = app.manage(Mutex::new(None::<AppState>));
 
-        App::init(app);
-        App::instance().packet.sniff("https://tauri.studio");
+    let app = app.setup(move |app| {
+        let handle = app.handle(); // TODO: remove clone
+        let state = &handle.state::<WrappedState>();
+        let new_state = AppState::new(&handle);
 
+        *state.lock().unwrap() = Some(new_state);
         Ok(())
-    })
-    .invoke_handler(tauri::generate_handler![greet])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    });
+
+    app.invoke_handler(tauri::generate_handler![greet])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
