@@ -1,9 +1,7 @@
 [package]
-name = "sniffer"
+name = "extractor"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 tauri-plugin-fs = { workspace = true }
@@ -11,4 +9,8 @@ serde = { workspace = true }
 tauri = { workspace = true}
 regex = {workspace = true}
 anyhow = {workspace = true}
+reqwest = {workspace = true}
 lazy_static = {workspace = true}
+zip = {workspace = true}
+tempdir = {workspace = true}
+fs_extra = {workspace = true}

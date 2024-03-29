@@ -1,3 +1,4 @@
+use extractor::DataExtractor;
 use once_cell::sync::OnceCell;
 use sniffer::PacketReader;
 use tauri::AppHandle;
@@ -5,6 +6,7 @@ use tauri::AppHandle;
 #[derive(Debug)]
 pub struct App {
     pub packet: PacketReader,
+    pub extractor: DataExtractor,
 }
 
 static INSTANCE: OnceCell<App> = OnceCell::new();
@@ -12,7 +14,8 @@ static INSTANCE: OnceCell<App> = OnceCell::new();
 impl App {
     pub fn new(handler: &AppHandle) -> App {
         App {
-            packet: PacketReader::new(handler).expect("Failed to create PacketReader"),
+            packet: PacketReader::new().expect("Failed to create PacketReader"),
+            extractor: DataExtractor::new(handler).expect("Failed to create DataExtractor"),
         }
     }
 

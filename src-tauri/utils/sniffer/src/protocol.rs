@@ -1,6 +1,10 @@
+use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_DIR: &str = "dofus/protocol";
+lazy_static! {
+    pub static ref PROTOCOL_FILE: String = format!("{}/protocol.json", PROTOCOL_DIR);
+    pub static ref TRANSLATIONS_DIR: String = format!("{}/translations.json", PROTOCOL_DIR);
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ProtocolVarType {

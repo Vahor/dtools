@@ -1,4 +1,3 @@
-use crate::protocol::PROTOCOL_DIR;
 use anyhow::Result;
 use fs_extra::dir::move_dir;
 use fs_extra::dir::remove;
@@ -15,6 +14,7 @@ pub struct Downloader {
 }
 
 const VERSION_FILE: &str = "version";
+pub const EXTRACTOR_DIR: &str = "dofus/datafus";
 const DATA_URL: &str = "https://github.com/bot4dofus/Datafus/releases";
 
 lazy_static! {
@@ -101,9 +101,10 @@ impl Downloader {
         let tmp_unzip_dir = temp_dir.path().join("unzip");
         let dist_folder = handler
             .path()
-            .resolve(PROTOCOL_DIR, BaseDirectory::AppData)?;
+            .resolve(EXTRACTOR_DIR, BaseDirectory::AppData)?;
         // cleanup dist folder
         remove(&dist_folder).expect(format!("Failed to remove {:?}", dist_folder).as_str());
+
         // create parent directory if not exists
         if !dist_folder.exists() {
             std::fs::create_dir_all(&dist_folder)?;
@@ -115,10 +116,14 @@ impl Downloader {
         archive
             .extract(&tmp_unzip_dir)
             .expect(format!("Failed to extract data.zip to {:?}", tmp_unzip_dir).as_str());
+        remove(&tmp_unzip_dir.join("data/A/DofusInvoker")).expect("Failed to remove DofusInvoker");
 
-        // the zip archive contain a dist folder with A, B, C folder, we only want to keep the content of the B and C folder
         let options = fs_extra::dir::CopyOptions::new().content_only(true);
-        let from = vec![tmp_unzip_dir.join("data/B"), tmp_unzip_dir.join("data/C")];
+        let from = vec![
+            tmp_unzip_dir.join("data/A"),
+            tmp_unzip_dir.join("data/B"),
+            tmp_unzip_dir.join("data/C"),
+        ];
         for f in from {
             move_dir(&f, &dist_folder, &options).expect("Failed to move items");
         }

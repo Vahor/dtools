@@ -440,6 +440,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.1.0"
+dependencies = [
+ "tauri-plugin-store",
+]
+
+[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -763,6 +770,7 @@ dependencies = [
 name = "dtools"
 version = "0.0.0"
 dependencies = [
+ "extractor",
  "once_cell",
  "serde",
  "serde_json",
@@ -771,6 +779,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-fs",
  "tauri-plugin-shell",
+ "tauri-plugin-store",
 ]
 
 [[package]]
@@ -828,6 +837,22 @@ checksum = "a258e46cdc063eb8519c00b9fc845fc47bcfca4130e2f08e88665ceda8474245"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "extractor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "fs_extra",
+ "lazy_static",
+ "regex",
+ "reqwest 0.12.2",
+ "serde",
+ "tauri",
+ "tauri-plugin-fs",
+ "tempdir",
+ "zip",
 ]
 
 [[package]]
@@ -3298,15 +3323,11 @@ name = "sniffer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "fs_extra",
  "lazy_static",
  "regex",
- "reqwest 0.12.2",
  "serde",
  "tauri",
  "tauri-plugin-fs",
- "tempdir",
- "zip",
 ]
 
 [[package]]
@@ -3718,6 +3739,20 @@ dependencies = [
  "serde",
  "serde_json",
  "shared_child",
+ "tauri",
+ "tauri-plugin",
+ "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-store"
+version = "2.0.0-beta.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0142026264556b634203155a0751474e2e1aeed0c38707dd6ce2abe435160ff8"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
  "tauri",
  "tauri-plugin",
  "thiserror",
