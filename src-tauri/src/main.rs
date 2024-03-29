@@ -10,15 +10,21 @@ fn greet(name: &str) -> String {
 }
 
 fn main() {
-    App::init();
-
     let app = tauri::Builder::default();
 
     let app = app
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init());
 
-    app.invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    app.setup(move |app| {
+        let app = app.handle();
+
+        App::init(app);
+        App::instance().packet.sniff("https://tauri.studio");
+
+        Ok(())
+    })
+    .invoke_handler(tauri::generate_handler![greet])
+    .run(tauri::generate_context!())
+    .expect("error while running tauri application");
 }
