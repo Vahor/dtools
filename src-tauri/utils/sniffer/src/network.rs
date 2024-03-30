@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result as AnyResult;
-use pcap::Capture;
+use pcap::{Activated, Capture};
 use std::sync::{Arc, Mutex};
 use tauri::AppHandle;
 
@@ -80,6 +80,14 @@ impl PacketListener {
         // TODO: configure port
         cap.filter("tcp port 5555", false).unwrap();
 
+        return self.run_with_capture(cap.into(), handle);
+    }
+
+    pub fn run_with_capture<T: tauri::Runtime>(
+        &self,
+        mut cap: Capture<dyn Activated>,
+        handle: &AppHandle<T>,
+    ) -> AnyResult<()> {
         let handle = handle.clone(); // TODO: check clone
 
         let subscriptions = self.subscriptions.clone();
@@ -110,16 +118,15 @@ impl PacketListener {
                             &subscriptions.lock().unwrap(),
                             &metadata.id,
                         ) {
-                            dbg!("ok", &metadata.id, &handle);
+                            dbg!("ok", &metadata.id);
                         } else {
-                            dbg!(&metadata.id, &handle);
+                            dbg!("nok", &metadata.id);
                             continue;
                         }
                     }
                 };
             }
         });
-
         return Ok(());
     }
 }
@@ -127,14 +134,10 @@ impl PacketListener {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pcap_file::pcap::PcapReader;
-    use std::fs::File;
 
     #[test]
     fn test_packet_listener() {
-        let mut listener = PacketListener {
-            subscriptions: Arc::new(Mutex::new(HashMap::new())),
-        };
+        let mut listener = PacketListener::new();
 
         assert_eq!(listener.subscriptions.lock().unwrap().len(), 0);
 
@@ -171,38 +174,10 @@ mod tests {
 
     #[test]
     fn test_with_capture() {
-        let capture = File::open("tests/fixtures/cap.pcap").unwrap();
-        let mut reader = PcapReader::new(capture).unwrap();
-
-        // TODO: find a way to avoid copy/pasting the code
-
-        let mut previous_frame_buffer_data: Vec<u8> = Vec::new();
-        while let Some(packet) = reader.next_packet() {
-            let data = packet.unwrap().data.to_vec();
-            previous_frame_buffer_data.extend_from_slice(&data);
-
-            let final_data = previous_frame_buffer_data.clone();
-            let current_frame_buffer = &mut DataWrapper::new(final_data);
-            let metadata = PacketMetadata::from_buffer(current_frame_buffer);
-
-            match metadata {
-                Err(err) => match err {
-                    crate::parser::metadata::ParseResult::Invalid => {
-                        previous_frame_buffer_data.clear();
-                    }
-                    _ => {}
-                },
-                Ok(metadata) => {
-                    previous_frame_buffer_data.clear();
-
-                    // whitelist
-                    if metadata.id != 64 {
-                        continue;
-                    }
-
-                    println!("{:?}", metadata.id);
-                }
-            };
-        }
+        let cap = Capture::from_file("tests/fixtures/cap.pcap").unwrap();
+        let listener = PacketListener::new();
+        let app = tauri::test::mock_app();
+        let handle = app.handle();
+        listener.run_with_capture(cap.into(), handle).unwrap();
     }
 }

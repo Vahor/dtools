@@ -33,7 +33,7 @@ fn main() {
         let state = &handle.state::<WrappedState>();
         let new_state = AppState::new(&handle);
 
-        let _ = &new_state
+        new_state
             .packet
             .network
             .run(&handle)

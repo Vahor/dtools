@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 
 use extractor::DataExtractor;
+use lazy_static::lazy_static;
 use sniffer::PacketReader;
 use tauri::AppHandle;
 
@@ -11,6 +12,10 @@ pub struct AppState {
 }
 
 pub type WrappedState = Mutex<Option<AppState>>;
+
+lazy_static! {
+    pub static ref STATE: WrappedState = Mutex::new(None);
+}
 
 impl AppState {
     pub fn new(handle: &AppHandle) -> AppState {

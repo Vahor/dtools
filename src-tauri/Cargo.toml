@@ -29,7 +29,7 @@ sniffer = { workspace = true }
 extractor = { workspace = true }
 
 [workspace.dependencies]
-tauri = { version = "2.0.0-beta", features = [] }
+tauri = { version = "2.0.0-beta", features = ["test"] }
 tauri-plugin-fs = "2.0.0-beta"
 tauri-plugin-store = "2.0.0-beta" # TODO
 tauri-plugin-shell = "2.0.0-beta"
