@@ -1,5 +1,6 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
-use tauri::AppHandle;
 
 pub mod network;
 pub mod parser;
@@ -12,9 +13,9 @@ pub struct PacketReader {
 }
 
 impl PacketReader {
-    pub fn new(handle: &AppHandle) -> Result<PacketReader> {
+    pub fn new(protocol_file_path: PathBuf) -> Result<PacketReader> {
         let instance = PacketReader {
-            protocol: protocol::ProtocolManager::new(handle)?,
+            protocol: protocol::ProtocolManager::new(protocol_file_path)?,
             network: network::PacketListener::new(),
         };
 

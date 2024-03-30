@@ -6,8 +6,7 @@ authors = ["Nathan David <me@vahor.fr>"]
 edition = "2021"
 
 [workspace]
-members = [ "utils/config",
-	"utils/extractor",
+members = [
 	"utils/sniffer"
 ]
 
@@ -24,9 +23,19 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 
 lazy_static = {workspace = true}
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-appender = { workspace = true }
+reqwest = { workspace = true }
+regex = { workspace = true }
+fs_extra = { workspace = true }
+zip = { workspace = true }
+tempdir = { workspace = true }
+anyhow = { workspace = true }
 
 sniffer = { workspace = true }
-extractor = { workspace = true }
 
 [workspace.dependencies]
 tauri = { version = "2.0.0-beta", features = ["test"] }
@@ -46,10 +55,11 @@ tempdir = "0.3.7"
 fs_extra = "1.3.0"
 pcap = "1.3.0"
 tokio = { version = "1.37.0", features = ["full"] }
-extractor = { path = "./utils/extractor" }
 sniffer = { path = "./utils/sniffer"}
-pcap-file = "2.0.0"
 thiserror = "1.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-appender = "0.2.3"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

@@ -1,0 +1,24 @@
+{
+	"build": {
+		"frontendDist": "../dist",
+		"devUrl": "http://localhost:1420"
+	},
+	"bundle": {
+		"active": true,
+		"resources": []
+	},
+	"productName": "dtools",
+	"version": "0.0.0",
+	"identifier": "fr.vahor.dtools",
+	"plugins": {},
+	"app": {
+		"security": {
+			"csp": null
+		},
+		"windows": [
+			{
+				"title": "dtools"
+			}
+		]
+	}
+}

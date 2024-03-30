@@ -1,10 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use anyhow::Result;
-use extractor::constants::EVENTS_FILE;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_option_number_from_string;
-use tauri::{path::BaseDirectory, AppHandle, Manager};
 
 pub type FieldName = String;
 
@@ -58,15 +56,12 @@ pub struct ProtocolManager {
     event_by_class: HashMap<EventName, EventId>,
 }
 
-fn load_protocol(handle: &AppHandle) -> Result<HashMap<EventId, ProtocolEvent>> {
+fn load_protocol(protocol_file_path: PathBuf) -> Result<HashMap<EventId, ProtocolEvent>> {
     let mut event_by_id = HashMap::new();
-    let protocol_file = handle
-        .path()
-        .resolve(EVENTS_FILE.clone(), BaseDirectory::AppData)?;
 
-    assert!(protocol_file.exists(), "Protocol file not found");
+    assert!(protocol_file_path.exists(), "Protocol file not found");
 
-    let content = std::fs::read_to_string(&protocol_file)?;
+    let content = std::fs::read_to_string(&protocol_file_path)?;
     let protocol: Vec<ProtocolEvent> = serde_json::from_str(&content)?;
 
     for event in protocol {
@@ -78,8 +73,8 @@ fn load_protocol(handle: &AppHandle) -> Result<HashMap<EventId, ProtocolEvent>> 
 }
 
 impl ProtocolManager {
-    pub fn new(handle: &AppHandle) -> Result<ProtocolManager> {
-        let event_by_id = load_protocol(handle)?;
+    pub fn new(protocol_file_path: PathBuf) -> Result<ProtocolManager> {
+        let event_by_id = load_protocol(protocol_file_path)?;
         let event_by_class: HashMap<EventName, EventId> =
             event_by_id
                 .iter()

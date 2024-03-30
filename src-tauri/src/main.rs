@@ -1,45 +1,40 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-pub mod state;
-use std::sync::Mutex;
+use std::sync::Arc;
 
-use state::{AppState, WrappedState};
-use tauri::{Manager, State};
+use node::Node;
+use tauri::Manager;
+use tracing::info;
+
+pub mod config;
+pub mod constants;
+pub mod downloader;
+pub mod node;
 
 #[tauri::command]
-fn greet(state: State<WrappedState>, name: &str) -> String {
-    let state = state.lock().unwrap();
-
-    if let Some(ref state) = *state {
-        state.greet(name)
-    } else {
-        "Bug".to_string()
-    }
+fn greet(state: tauri::State<'_, Arc<Node>>, name: &str) -> String {
+    state.greet(name)
 }
 
 fn main() {
     let app = tauri::Builder::default();
+
+    info!("Starting Node...");
 
     let app = app
         .plugin(tauri_plugin_shell::init())
         // .plugin(tauri_plugin_store::init())
         .plugin(tauri_plugin_fs::init());
 
-    let app = app.manage(Mutex::new(None::<AppState>));
-
     let app = app.setup(move |app| {
-        let handle = app.handle(); // TODO: remove clone
-        let state = &handle.state::<WrappedState>();
-        let new_state = AppState::new(&handle);
+        let handle = app.handle();
+        tauri::async_runtime::block_on(async {
+            let data_dir = handle.path().app_data_dir().unwrap();
+            let node = node::Node::new(data_dir).await;
+            app.manage(node);
+        });
 
-        new_state
-            .packet
-            .network
-            .run(&handle)
-            .expect("Failed to start packet listener");
-
-        *state.lock().unwrap() = Some(new_state);
         Ok(())
     });
 

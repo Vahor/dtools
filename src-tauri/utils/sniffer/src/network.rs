@@ -1,15 +1,17 @@
 use std::collections::HashMap;
 
 use anyhow::Result as AnyResult;
+use core::fmt::Debug;
 use pcap::{Activated, Capture};
 use std::sync::{Arc, Mutex};
 use tauri::AppHandle;
 
 use crate::parser::metadata::PacketMetadata;
+use crate::parser::packet::{Packet, PacketParser};
 use crate::parser::wrapper::DataWrapper;
-use crate::protocol::{EventId, ProtocolEvent};
+use crate::protocol::EventId;
 
-pub type Listener = fn(&ProtocolEvent);
+pub type Listener = fn(&Packet, &AppHandle);
 pub type ListenerId = String;
 pub type Subscription = (ListenerId, Listener);
 
@@ -42,15 +44,19 @@ impl PacketListener {
             .map(|listeners| listeners.retain(|(id, _)| id != &listener_id));
     }
 
-    pub fn notify(&self, event: &ProtocolEvent) {
-        PacketListener::_notify(&self.subscriptions.lock().unwrap(), event);
+    pub fn notify(&self, event: &Packet, handle: &AppHandle) {
+        PacketListener::_notify(&self.subscriptions.lock().unwrap(), event, handle);
     }
 
-    fn _notify(subscriptions: &HashMap<EventId, Vec<Subscription>>, event: &ProtocolEvent) {
-        let listeners = subscriptions.get(&event.id.unwrap());
+    fn _notify(
+        subscriptions: &HashMap<EventId, Vec<Subscription>>,
+        packet: &Packet,
+        handle: &AppHandle,
+    ) {
+        let listeners = subscriptions.get(&packet.id);
         if let Some(listeners) = listeners {
             for (_, listener) in listeners {
-                listener(event);
+                listener(packet, handle);
             }
         }
     }
@@ -83,10 +89,10 @@ impl PacketListener {
         return self.run_with_capture(cap.into(), handle);
     }
 
-    pub fn run_with_capture<T: tauri::Runtime>(
+    pub fn run_with_capture(
         &self,
         mut cap: Capture<dyn Activated>,
-        handle: &AppHandle<T>,
+        handle: &AppHandle,
     ) -> AnyResult<()> {
         let handle = handle.clone(); // TODO: check clone
 
@@ -118,10 +124,15 @@ impl PacketListener {
                             &subscriptions.lock().unwrap(),
                             &metadata.id,
                         ) {
-                            dbg!("ok", &metadata.id);
-                        } else {
-                            dbg!("nok", &metadata.id);
-                            continue;
+                            let mut parser = PacketParser::from_metadata(&metadata);
+                            if let Some(packet) = parser.parse(&handle) {
+                                PacketListener::_notify(
+                                    &subscriptions.lock().unwrap(),
+                                    &packet,
+                                    &handle,
+                                );
+                                dbg!("ok", &packet);
+                            }
                         }
                     }
                 };
@@ -133,6 +144,8 @@ impl PacketListener {
 
 #[cfg(test)]
 mod tests {
+    use tauri::Manager;
+
     use super::*;
 
     #[test]
@@ -142,7 +155,7 @@ mod tests {
         assert_eq!(listener.subscriptions.lock().unwrap().len(), 0);
 
         let listener_id = "test".to_string();
-        let listener_fn = |_event: &ProtocolEvent| {};
+        let listener_fn = |_event: &Packet, _: &AppHandle| {};
         let event = 0;
 
         listener.subscribe(event.clone(), listener_id.clone(), listener_fn);
@@ -172,12 +185,32 @@ mod tests {
         );
     }
 
+    struct State {
+        pub count: Arc<Mutex<i32>>,
+    }
+
     #[test]
     fn test_with_capture() {
         let cap = Capture::from_file("tests/fixtures/cap.pcap").unwrap();
-        let listener = PacketListener::new();
-        let app = tauri::test::mock_app();
-        let handle = app.handle();
-        listener.run_with_capture(cap.into(), handle).unwrap();
+        // let mut listener = PacketListener::new();
+        // let app = tauri::test::mock_app();
+        // let handle: AppHandle<tauri::Wry> = app.handle();
+        //
+        // let state = State {
+        //     count: Arc::new(Mutex::new(0)),
+        // };
+        //
+        // app.manage(state);
+        //
+        // let listener_fn = |_event: &Packet, handle: &AppHandle| {
+        //     let state = handle.state::<State>();
+        //     let mut count = state.count.lock().unwrap();
+        //     *count += 1;
+        //     println!("count: {}", *count);
+        // };
+        //
+        // listener.subscribe(64, "test".to_string(), listener_fn);
+        //
+        // listener.run_with_capture(cap.into(), &handle).unwrap();
     }
 }
