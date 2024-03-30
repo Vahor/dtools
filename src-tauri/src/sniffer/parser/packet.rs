@@ -5,7 +5,9 @@ use serde_json::{Map, Number, Value};
 use thiserror::Error;
 use tracing::{debug, info, warn};
 
-use crate::sniffer::protocol::{EventName, ProtocolManager, ProtocolSchema, ProtocolVarType};
+use crate::sniffer::protocol::{
+    EventId, EventName, ProtocolManager, ProtocolSchema, ProtocolVarType,
+};
 
 use super::{metadata::PacketMetadata, wrapper::DataWrapper};
 
@@ -61,7 +63,8 @@ impl PacketParser {
         if let Some(parent) = &event.parent {
             let parent_type = protocol_manager.get_protocol_by_class(&parent);
             if parent_type.is_none() {
-                return Err(PacketError::UnknownParentType);
+                debug!("Unknown parent type: {:?}", parent);
+                return Err(PacketError::UnknownParentType(parent.clone()));
             }
             let parent_type = parent_type.unwrap();
             let parent_data = self.parse_packet_data(protocol_manager, parent_type)?;
@@ -130,7 +133,7 @@ impl PacketParser {
 #[derive(Debug, Error)]
 pub enum PacketError {
     #[error("Unknown parent type")]
-    UnknownParentType,
+    UnknownParentType(EventName),
     #[error("Unknown packet type")]
     UnknownPacketType,
 }

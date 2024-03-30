@@ -5,7 +5,7 @@ use thiserror::Error;
 use serde::*;
 use serde_aux::field_attributes::deserialize_option_number_from_string;
 use serde_enum_str::Deserialize_enum_str;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::constants::{EVENTS_FILE, EXTRACTOR_DIR};
 
@@ -84,9 +84,15 @@ fn load_protocol(
     let content = std::fs::read_to_string(&protocol_file_path)?;
     let protocol: Vec<ProtocolSchema> = serde_json::from_str(&content)?;
 
+    let mut without_id_count = 0;
     for event in protocol {
         if let Some(id) = event.id {
             event_by_id.insert(id, event);
+        } else {
+            // There should be only one event without an id (NetworkMessage)
+            assert_eq!(without_id_count, 0);
+            without_id_count += 1;
+            event_by_id.insert(0, event);
         }
     }
     return Ok(event_by_id);
