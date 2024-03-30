@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use node::Node;
 use tauri::Manager;
-use tracing::info;
+use tracing::{error, info};
 
 pub mod config;
 pub mod constants;
@@ -29,11 +29,19 @@ fn main() {
         .plugin(tauri_plugin_fs::init());
 
     let app = app.setup(move |app| {
+        // let splashscreen_window = app.get_window("splashscreen").unwrap();
+        let main_window = app.get_webview_window("main").unwrap();
         let handle = app.handle();
         tauri::async_runtime::block_on(async {
             let data_dir = handle.path().app_data_dir().unwrap();
             let node = node::Node::new(data_dir, Some(handle.clone()), true).await;
-            app.manage(node);
+            if let Err(e) = node {
+                error!("Failed to initialize node: {:?}", e);
+                handle.exit(1);
+                return;
+            }
+            app.manage(node.unwrap());
+            main_window.show().unwrap();
         });
 
         Ok(())

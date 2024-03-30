@@ -4,7 +4,7 @@ use core::fmt::Debug;
 use pcap::{Activated, Capture};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::{
     node::Node,
@@ -126,7 +126,6 @@ impl PacketListener {
         let node = self.node.clone().unwrap();
 
         tauri::async_runtime::spawn(async move {
-            println!("Sniffer started");
             let mut previous_frame_buffer_data: Vec<u8> = Vec::new();
             while let Ok(packet) = cap.next_packet() {
                 let data = packet.data.to_vec();
@@ -154,12 +153,18 @@ impl PacketListener {
                             &metadata.id,
                         ) {
                             let mut parser = PacketParser::from_metadata(&metadata);
-                            if let Some(packet) = parser.parse(&procol_manager) {
-                                PacketListener::_notify(
-                                    &subscriptions.lock().unwrap(),
-                                    &packet,
-                                    &node,
-                                );
+                            match parser.parse(&procol_manager) {
+                                Ok(packet) => {
+                                    info!("Packet: {:?}", packet);
+                                    PacketListener::_notify(
+                                        &subscriptions.lock().unwrap(),
+                                        &packet,
+                                        &node,
+                                    );
+                                }
+                                Err(err) => {
+                                    warn!("Failed to parse packet: {:?}", err);
+                                }
                             }
                         }
                     }
@@ -249,7 +254,9 @@ mod tests {
         };
 
         let mut listener = node.packet_listener.lock().unwrap();
-        listener.subscribe(213, "test".to_string(), listener_fn);
+        let id = "test".to_string();
+        // listener.subscribe(213, id.clone(), listener_fn);
+        listener.subscribe(4879, id.clone(), listener_fn);
 
         let res = listener.run_with_capture(cap.into());
         if let Err(err) = res {

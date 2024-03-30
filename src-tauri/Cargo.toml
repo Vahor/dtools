@@ -21,6 +21,7 @@ tauri-plugin-store = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde-aux = { workspace = true }
+serde-enum-str = { workspace = true }
 
 lazy_static = {workspace = true}
 tokio = { workspace = true }
@@ -34,7 +35,7 @@ fs_extra = { workspace = true }
 zip = { workspace = true }
 tempdir = { workspace = true }
 anyhow = { workspace = true }
-
+indexmap = { workspace = true }
 pcap = {workspace = true}
 
 [workspace.dependencies]
@@ -46,6 +47,7 @@ tauri-plugin-global-shortcut = "2.0.0-beta" # TODO
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-aux = "4.5.0"
+serde-enum-str = "0.4"
 anyhow = "1.0"
 reqwest = { version = "0.12.2", features = ["blocking"] }
 regex = "1.10.4"
@@ -59,6 +61,7 @@ thiserror = "1.0"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tracing-appender = "0.2.3"
+indexmap = { version ="2.2.6", features = ["serde"] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

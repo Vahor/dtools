@@ -1,67 +1,75 @@
+use indexmap::IndexMap;
 use std::{collections::HashMap, path::Path};
 use thiserror::Error;
 
-use serde::{Deserialize, Serialize};
+use serde::*;
 use serde_aux::field_attributes::deserialize_option_number_from_string;
+use serde_enum_str::Deserialize_enum_str;
 use tracing::info;
 
 use crate::constants::{EVENTS_FILE, EXTRACTOR_DIR};
 
 pub type FieldName = String;
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-pub enum EventName {
-    #[serde(other)]
-    Unknown,
-}
+pub type EventName = String;
 
 pub type EventId = u16;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Deserialize_enum_str, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ProtocolVarType {
-    UTF,
-    VarUhShort,
+    String,
+    VarInt,
+    VarLong,
     VarShort,
     Short,
-    Float,
-    VarUhLong,
-    VarLong,
-    Byte,
-    VarUhInt,
     Int,
-    Double,
-    Boolean,
-    UnsignedInt,
-    UnsignedShort,
-    VarInt,
-    UnsignedByte,
-    ByteArray,
-    False,
+    Byte,
 
     #[serde(other)]
-    Unknown,
+    Unknown(String),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ProtocolEvent {
+impl ProtocolVarType {
+    pub fn is_primitive(&self) -> bool {
+        match self {
+            ProtocolVarType::String
+            | ProtocolVarType::VarInt
+            | ProtocolVarType::VarLong
+            | ProtocolVarType::VarShort
+            | ProtocolVarType::Short
+            | ProtocolVarType::Int
+            | ProtocolVarType::Byte => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        match self {
+            ProtocolVarType::Unknown(_) => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ProtocolSchema {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
     pub id: Option<EventId>,
     #[serde(rename = "class_name")]
     pub name: EventName,
     #[serde(rename = "superclass")]
     pub parent: Option<EventName>,
-    pub attributes: HashMap<FieldName, ProtocolVarType>,
+    pub attributes: IndexMap<FieldName, ProtocolVarType>,
 }
 
 #[derive(Debug)]
 pub struct ProtocolManager {
-    event_by_id: HashMap<EventId, ProtocolEvent>,
-    event_by_class: HashMap<EventName, EventId>,
+    protocol_by_id: HashMap<EventId, ProtocolSchema>,
+    protocol_id_by_name: HashMap<EventName, EventId>,
 }
 
 fn load_protocol(
     protocol_file_path: impl AsRef<Path>,
-) -> Result<HashMap<EventId, ProtocolEvent>, std::io::Error> {
+) -> Result<HashMap<EventId, ProtocolSchema>, std::io::Error> {
     let protocol_file_path = protocol_file_path.as_ref();
     let protocol_file_path = protocol_file_path.join(EXTRACTOR_DIR).join(EVENTS_FILE);
 
@@ -74,7 +82,7 @@ fn load_protocol(
     );
 
     let content = std::fs::read_to_string(&protocol_file_path)?;
-    let protocol: Vec<ProtocolEvent> = serde_json::from_str(&content)?;
+    let protocol: Vec<ProtocolSchema> = serde_json::from_str(&content)?;
 
     for event in protocol {
         if let Some(id) = event.id {
@@ -86,9 +94,9 @@ fn load_protocol(
 
 impl ProtocolManager {
     pub fn new(protocol_file_path: impl AsRef<Path>) -> Result<ProtocolManager, ProtocolError> {
-        let event_by_id = load_protocol(protocol_file_path)?;
-        let event_by_class: HashMap<EventName, EventId> =
-            event_by_id
+        let protocol_by_id = load_protocol(protocol_file_path)?;
+        let protocol_id_by_name: HashMap<EventName, EventId> =
+            protocol_by_id
                 .iter()
                 .fold(HashMap::new(), |mut map, (id, event)| {
                     map.insert(event.name.clone(), *id);
@@ -96,21 +104,23 @@ impl ProtocolManager {
                 });
 
         let instance = ProtocolManager {
-            event_by_id,
-            event_by_class,
+            protocol_by_id,
+            protocol_id_by_name,
         };
 
-        info!("Loaded {} events", instance.event_by_id.len());
+        info!("Loaded {} protocols", instance.protocol_by_id.len());
         return Ok(instance);
     }
 
-    pub fn get_event(&self, id: &EventId) -> Option<&ProtocolEvent> {
-        self.event_by_id.get(id)
+    pub fn get_protocol(&self, id: &EventId) -> Option<&ProtocolSchema> {
+        self.protocol_by_id.get(id)
     }
 
-    pub fn get_event_by_class(&self, class: &EventName) -> Option<&ProtocolEvent> {
-        let id = self.event_by_class.get(class)?;
-        return self.get_event(id);
+    pub fn get_protocol_by_class(&self, class: &EventName) -> Option<&ProtocolSchema> {
+        if let Some(id) = self.protocol_id_by_name.get(class) {
+            return self.get_protocol(id);
+        }
+        None
     }
 }
 

@@ -57,6 +57,10 @@ impl DataWrapper {
             if byte & 0x80 == 0 {
                 break;
             }
+            // Max length of varint is 5 bytes
+            if shift > 35 {
+                panic!("Invalid varint");
+            }
         }
         value
     }
