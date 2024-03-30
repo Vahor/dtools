@@ -11,6 +11,7 @@ pub mod config;
 pub mod constants;
 pub mod downloader;
 pub mod node;
+pub mod sniffer;
 
 #[tauri::command]
 fn greet(state: tauri::State<'_, Arc<Node>>, name: &str) -> String {
@@ -31,7 +32,7 @@ fn main() {
         let handle = app.handle();
         tauri::async_runtime::block_on(async {
             let data_dir = handle.path().app_data_dir().unwrap();
-            let node = node::Node::new(data_dir).await;
+            let node = node::Node::new(data_dir, Some(handle.clone()), true).await;
             app.manage(node);
         });
 

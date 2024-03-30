@@ -10,8 +10,14 @@ use crate::constants::CONFIG_FILE_NAME;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfig {
-    pub port: u16,
     pub game_version: String,
+    pub network: NetworkConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkConfig {
+    pub port: u16,
+    pub interface: String,
 }
 
 impl NodeConfig {
@@ -27,13 +33,22 @@ impl NodeConfig {
         std::fs::write(path, config)?;
         Ok(())
     }
+
+    pub fn save_sync(&self, path: impl AsRef<Path>) -> Result<(), NodeConfigError> {
+        let config = serde_json::to_string_pretty(self)?;
+        std::fs::write(path, config)?;
+        Ok(())
+    }
 }
 
 impl Default for NodeConfig {
     fn default() -> Self {
         NodeConfig {
-            port: 5555,
             game_version: "".to_string(),
+            network: NetworkConfig {
+                port: 5555,
+                interface: "en0".to_string(),
+            },
         }
     }
 }
@@ -60,6 +75,8 @@ impl Manager {
         };
 
         let config = RwLock::new(config);
+
+        info!("Config loaded successfully");
         Ok(Arc::new(Manager {
             config,
             data_dir_path,
@@ -77,6 +94,15 @@ impl Manager {
             .save(&self.config_file_path)
             .await
             .map_err(Into::into)
+    }
+
+    pub fn update_config_sync(
+        &self,
+        update_fn: impl FnOnce(&mut NodeConfig),
+    ) -> Result<(), NodeConfigError> {
+        let mut config = self.config.write().unwrap();
+        update_fn(&mut config);
+        config.save_sync(&self.config_file_path).map_err(Into::into)
     }
 }
 

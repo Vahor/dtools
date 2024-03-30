@@ -1,9 +1,11 @@
 use std::{
+    collections::HashMap,
     fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
+use crate::sniffer::{network, protocol};
 use crate::{config, downloader};
 use thiserror::Error;
 use tracing::{error, info};
@@ -17,13 +19,23 @@ use tracing_subscriber::{filter::FromEnvError, prelude::*, EnvFilter};
 pub struct Node {
     pub data_dir: PathBuf,
     pub config: Arc<config::Manager>,
-    // pub packet: Arc<PacketReader>,
     pub http: reqwest::Client,
     pub downloader: Arc<Mutex<downloader::Downloader>>,
+    pub packet_listener: Arc<Mutex<network::PacketListener>>,
+    pub protocol: Arc<protocol::ProtocolManager>,
+
+    pub handle: Option<tauri::AppHandle>,
+
+    /// Temporary store for data, often use in the packet listener
+    pub store: Arc<Mutex<HashMap<String, String>>>,
 }
 
 impl Node {
-    pub async fn new(data_dir: impl AsRef<Path>) -> Result<Arc<Node>, NodeError> {
+    pub async fn new(
+        data_dir: impl AsRef<Path>,
+        handle: Option<tauri::AppHandle>,
+        init: bool,
+    ) -> Result<Arc<Node>, NodeError> {
         let data_dir_path = data_dir.as_ref();
 
         let _ = fs::create_dir_all(data_dir_path)?;
@@ -37,16 +49,28 @@ impl Node {
 
         let http_client = reqwest::Client::new();
 
+        let protocol = protocol::ProtocolManager::new(data_dir_path)
+            .map_err(NodeError::FailedToInitializeProtocol)?;
+
+        let packet_listener = network::PacketListener::new();
+        let downloader = downloader::Downloader::new();
+
         let node = Arc::new(Node {
             data_dir: data_dir_path.to_path_buf(),
             config,
-            // packet: Arc::new(PacketReader::new().await),
-            downloader: Arc::new(Mutex::new(downloader::Downloader::new())),
+            downloader: Arc::new(Mutex::new(downloader)),
             http: http_client,
+            protocol: Arc::new(protocol),
+            packet_listener: Arc::new(Mutex::new(packet_listener)),
+            handle,
+            store: Arc::new(Mutex::new(HashMap::new())),
         });
 
-        node.downloader.lock().unwrap().init(&node).await?;
+        node.packet_listener.lock().unwrap().set_node(node.clone());
 
+        if init {
+            node.downloader.lock().unwrap().init(&node).await?;
+        }
         info!("Node initialized successfully");
 
         return Ok(node);
@@ -116,4 +140,6 @@ pub enum NodeError {
     FailedToInitializeLogger(#[from] FromEnvError),
     #[error("Failed to create data directory")]
     FailedToCreateDataDir(#[from] std::io::Error),
+    #[error("Failed to initialize ProtocolManager")]
+    FailedToInitializeProtocol(#[from] protocol::ProtocolError),
 }

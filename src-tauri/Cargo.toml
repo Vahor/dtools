@@ -7,7 +7,6 @@ edition = "2021"
 
 [workspace]
 members = [
-	"utils/sniffer"
 ]
 
 [build-dependencies]
@@ -21,6 +20,7 @@ tauri-plugin-store = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde-aux = { workspace = true }
 
 lazy_static = {workspace = true}
 tokio = { workspace = true }
@@ -35,7 +35,7 @@ zip = { workspace = true }
 tempdir = { workspace = true }
 anyhow = { workspace = true }
 
-sniffer = { workspace = true }
+pcap = {workspace = true}
 
 [workspace.dependencies]
 tauri = { version = "2.0.0-beta", features = ["test"] }
@@ -55,7 +55,6 @@ tempdir = "0.3.7"
 fs_extra = "1.3.0"
 pcap = "1.3.0"
 tokio = { version = "1.37.0", features = ["full"] }
-sniffer = { path = "./utils/sniffer"}
 thiserror = "1.0"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

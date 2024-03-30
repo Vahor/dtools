@@ -1,30 +1,42 @@
 use std::collections::HashMap;
 
-use anyhow::Result as AnyResult;
 use core::fmt::Debug;
 use pcap::{Activated, Capture};
 use std::sync::{Arc, Mutex};
-use tauri::AppHandle;
+use thiserror::Error;
+use tracing::info;
 
-use crate::parser::metadata::PacketMetadata;
-use crate::parser::packet::{Packet, PacketParser};
-use crate::parser::wrapper::DataWrapper;
-use crate::protocol::EventId;
+use crate::{
+    node::Node,
+    sniffer::parser::{
+        metadata::{PacketMetadata, ParseResult},
+        packet::PacketParser,
+        wrapper::DataWrapper,
+    },
+};
 
-pub type Listener = fn(&Packet, &AppHandle);
+use super::{parser::packet::Packet, protocol::EventId};
+
+pub type Listener = fn(&Packet, &Node);
 pub type ListenerId = String;
 pub type Subscription = (ListenerId, Listener);
 
 #[derive(Debug)]
 pub struct PacketListener {
     subscriptions: Arc<Mutex<HashMap<EventId, Vec<Subscription>>>>,
+    node: Option<Arc<Node>>,
 }
 
 impl PacketListener {
     pub fn new() -> PacketListener {
         return PacketListener {
             subscriptions: Arc::new(Mutex::new(HashMap::new())),
+            node: None,
         };
+    }
+
+    pub fn set_node(&mut self, node: Arc<Node>) {
+        self.node = Some(node);
     }
 
     pub fn subscribe(&mut self, event: EventId, listener_id: ListenerId, listener: Listener) {
@@ -44,19 +56,19 @@ impl PacketListener {
             .map(|listeners| listeners.retain(|(id, _)| id != &listener_id));
     }
 
-    pub fn notify(&self, event: &Packet, handle: &AppHandle) {
-        PacketListener::_notify(&self.subscriptions.lock().unwrap(), event, handle);
+    pub fn notify(&self, event: &Packet) {
+        PacketListener::_notify(
+            &self.subscriptions.lock().unwrap(),
+            event,
+            &self.node.as_ref().unwrap(),
+        );
     }
 
-    fn _notify(
-        subscriptions: &HashMap<EventId, Vec<Subscription>>,
-        packet: &Packet,
-        handle: &AppHandle,
-    ) {
+    fn _notify(subscriptions: &HashMap<EventId, Vec<Subscription>>, packet: &Packet, node: &Node) {
         let listeners = subscriptions.get(&packet.id);
         if let Some(listeners) = listeners {
             for (_, listener) in listeners {
-                listener(packet, handle);
+                listener(packet, node);
             }
         }
     }
@@ -74,29 +86,44 @@ impl PacketListener {
             .map_or(false, |listeners| !listeners.is_empty());
     }
 
-    pub fn run(&self, handle: &AppHandle) -> AnyResult<()> {
-        // TODO: configure device
-        let mut cap = Capture::from_device("en0")
+    pub fn run(&self) -> Result<(), PacketListenerError> {
+        if self.node.is_none() {
+            return Err(PacketListenerError::InvalidCaptureDevice);
+        }
+
+        let config = self.node.as_ref().unwrap().config.config.read().unwrap();
+        let interface = config.network.interface.as_str();
+        let port = config.network.port;
+
+        info!(
+            "Starting sniffer on interface: {} and port: {}",
+            interface, port
+        );
+
+        let mut cap = Capture::from_device(interface)
             .unwrap()
             .immediate_mode(true)
             .open()
             .expect("Failed to open device");
         cap.direction(pcap::Direction::In).unwrap();
 
-        // TODO: configure port
-        cap.filter("tcp port 5555", false).unwrap();
+        cap.filter(format!("tcp port {}", port).as_str(), false)
+            .unwrap();
 
-        return self.run_with_capture(cap.into(), handle);
+        self.run_with_capture(cap.into())
     }
 
     pub fn run_with_capture(
         &self,
         mut cap: Capture<dyn Activated>,
-        handle: &AppHandle,
-    ) -> AnyResult<()> {
-        let handle = handle.clone(); // TODO: check clone
+    ) -> Result<(), PacketListenerError> {
+        if self.node.is_none() {
+            return Err(PacketListenerError::InvalidCaptureDevice);
+        }
 
         let subscriptions = self.subscriptions.clone();
+        let procol_manager = self.node.as_ref().unwrap().protocol.clone();
+        let node = self.node.clone().unwrap();
 
         tauri::async_runtime::spawn(async move {
             println!("Sniffer started");
@@ -111,7 +138,7 @@ impl PacketListener {
 
                 match metadata {
                     Err(err) => match err {
-                        crate::parser::metadata::ParseResult::Invalid => {
+                        ParseResult::Invalid => {
                             previous_frame_buffer_data.clear();
                         }
                         _ => {}
@@ -119,32 +146,42 @@ impl PacketListener {
                     Ok(metadata) => {
                         previous_frame_buffer_data.clear();
 
+                        // TODO: check 64, 110, 16203 ids
+
                         // whitelist
                         if PacketListener::_has_subscriptions(
                             &subscriptions.lock().unwrap(),
                             &metadata.id,
                         ) {
                             let mut parser = PacketParser::from_metadata(&metadata);
-                            if let Some(packet) = parser.parse(&handle) {
+                            if let Some(packet) = parser.parse(&procol_manager) {
                                 PacketListener::_notify(
                                     &subscriptions.lock().unwrap(),
                                     &packet,
-                                    &handle,
+                                    &node,
                                 );
-                                dbg!("ok", &packet);
                             }
                         }
                     }
                 };
             }
         });
-        return Ok(());
+
+        Ok(())
     }
+}
+
+#[derive(Debug, Error)]
+pub enum PacketListenerError {
+    #[error("Failed to open device")]
+    FailedToOpenDevice,
+    #[error("Invalid capture device")]
+    InvalidCaptureDevice,
 }
 
 #[cfg(test)]
 mod tests {
-    use tauri::Manager;
+    use std::path::Path;
 
     use super::*;
 
@@ -155,7 +192,7 @@ mod tests {
         assert_eq!(listener.subscriptions.lock().unwrap().len(), 0);
 
         let listener_id = "test".to_string();
-        let listener_fn = |_event: &Packet, _: &AppHandle| {};
+        let listener_fn = |_event: &Packet, _: &Node| {};
         let event = 0;
 
         listener.subscribe(event.clone(), listener_id.clone(), listener_fn);
@@ -185,32 +222,41 @@ mod tests {
         );
     }
 
-    struct State {
-        pub count: Arc<Mutex<i32>>,
-    }
-
-    #[test]
-    fn test_with_capture() {
+    #[tokio::test]
+    async fn test_with_capture() {
         let cap = Capture::from_file("tests/fixtures/cap.pcap").unwrap();
-        // let mut listener = PacketListener::new();
-        // let app = tauri::test::mock_app();
-        // let handle: AppHandle<tauri::Wry> = app.handle();
-        //
-        // let state = State {
-        //     count: Arc::new(Mutex::new(0)),
-        // };
-        //
-        // app.manage(state);
-        //
-        // let listener_fn = |_event: &Packet, handle: &AppHandle| {
-        //     let state = handle.state::<State>();
-        //     let mut count = state.count.lock().unwrap();
-        //     *count += 1;
-        //     println!("count: {}", *count);
-        // };
-        //
-        // listener.subscribe(64, "test".to_string(), listener_fn);
-        //
-        // listener.run_with_capture(cap.into(), &handle).unwrap();
+        let path = "tests/fixtures/".to_string();
+        let path = Path::new(&path);
+        let node = Node::new(path, None, false).await;
+        if let Err(err) = node {
+            panic!("Failed to create node: {:?}", err);
+        }
+        let node = node.unwrap();
+        let listener_fn = |event: &Packet, node: &Node| {
+            let key = event.id.to_string();
+            let mut store = node.store.lock().unwrap();
+            match store.get(&key) {
+                Some(count) => {
+                    let count = count.parse::<u32>().unwrap();
+                    let count = count + 1;
+                    let count = count.to_string();
+                    store.insert(key, count);
+                }
+                None => {
+                    store.insert(key, "1".to_string());
+                }
+            }
+        };
+
+        let mut listener = node.packet_listener.lock().unwrap();
+        listener.subscribe(213, "test".to_string(), listener_fn);
+
+        let res = listener.run_with_capture(cap.into());
+        if let Err(err) = res {
+            panic!("Failed to run with capture: {:?}", err);
+        }
+
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+        info!("Store: {:?}", node.store.lock().unwrap());
     }
 }

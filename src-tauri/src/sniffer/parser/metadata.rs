@@ -1,6 +1,7 @@
-use crate::parser::wrapper::DataWrapper;
 use anyhow::Result;
 use thiserror::Error;
+
+use super::wrapper::DataWrapper;
 
 #[derive(Debug, Clone)]
 pub enum PacketDirection {
@@ -81,12 +82,6 @@ impl PacketMetadata {
         let id = (header >> 2) as u16;
 
         if buffer.remaining() < (len as usize) {
-            eprintln!(
-                "Skipping packet, not enough data : {}: {} < {}",
-                id,
-                buffer.remaining(),
-                len
-            );
             return Err(ParseResult::Incomplete);
         }
 

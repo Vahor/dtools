@@ -1,8 +1,11 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, path::Path};
+use thiserror::Error;
 
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_aux::field_attributes::deserialize_option_number_from_string;
+use tracing::info;
+
+use crate::constants::{EVENTS_FILE, EXTRACTOR_DIR};
 
 pub type FieldName = String;
 
@@ -56,10 +59,19 @@ pub struct ProtocolManager {
     event_by_class: HashMap<EventName, EventId>,
 }
 
-fn load_protocol(protocol_file_path: PathBuf) -> Result<HashMap<EventId, ProtocolEvent>> {
+fn load_protocol(
+    protocol_file_path: impl AsRef<Path>,
+) -> Result<HashMap<EventId, ProtocolEvent>, std::io::Error> {
+    let protocol_file_path = protocol_file_path.as_ref();
+    let protocol_file_path = protocol_file_path.join(EXTRACTOR_DIR).join(EVENTS_FILE);
+
     let mut event_by_id = HashMap::new();
 
-    assert!(protocol_file_path.exists(), "Protocol file not found");
+    assert!(
+        protocol_file_path.exists(),
+        "Protocol file not found at {}",
+        protocol_file_path.display()
+    );
 
     let content = std::fs::read_to_string(&protocol_file_path)?;
     let protocol: Vec<ProtocolEvent> = serde_json::from_str(&content)?;
@@ -73,7 +85,7 @@ fn load_protocol(protocol_file_path: PathBuf) -> Result<HashMap<EventId, Protoco
 }
 
 impl ProtocolManager {
-    pub fn new(protocol_file_path: PathBuf) -> Result<ProtocolManager> {
+    pub fn new(protocol_file_path: impl AsRef<Path>) -> Result<ProtocolManager, ProtocolError> {
         let event_by_id = load_protocol(protocol_file_path)?;
         let event_by_class: HashMap<EventName, EventId> =
             event_by_id
@@ -87,6 +99,8 @@ impl ProtocolManager {
             event_by_id,
             event_by_class,
         };
+
+        info!("Loaded {} events", instance.event_by_id.len());
         return Ok(instance);
     }
 
@@ -98,4 +112,10 @@ impl ProtocolManager {
         let id = self.event_by_class.get(class)?;
         return self.get_event(id);
     }
+}
+
+#[derive(Error, Debug)]
+pub enum ProtocolError {
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
 }

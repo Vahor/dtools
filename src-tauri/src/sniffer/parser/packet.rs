@@ -1,7 +1,8 @@
 use serde_json::{Map, Number, Value};
 use tauri::{App, AppHandle};
+use tracing::info;
 
-use crate::protocol::{EventName, ProtocolEvent};
+use crate::sniffer::protocol::ProtocolManager;
 
 use super::{metadata::PacketMetadata, wrapper::DataWrapper};
 
@@ -28,7 +29,20 @@ impl PacketParser {
         PacketParser::new(meta.id, DataWrapper::new(meta.data.clone()))
     }
 
-    pub fn parse<T: tauri::Runtime>(&mut self, handle: &AppHandle<T>) -> Option<Packet> {
-        None
+    pub fn parse(&mut self, protocol_manager: &ProtocolManager) -> Option<Packet> {
+        match protocol_manager.get_event(&self.id) {
+            Some(event) => {
+                let mut packet = Packet {
+                    id: self.id,
+                    data: Map::new(),
+                };
+
+                Some(packet)
+            }
+            None => {
+                info!("Unknown packet: {}", self.id);
+                None
+            }
+        }
     }
 }

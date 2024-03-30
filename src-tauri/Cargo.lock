@@ -766,11 +766,12 @@ dependencies = [
  "anyhow",
  "fs_extra",
  "lazy_static",
+ "pcap",
  "regex",
  "reqwest 0.12.2",
  "serde",
+ "serde-aux",
  "serde_json",
- "sniffer",
  "tauri",
  "tauri-build",
  "tauri-plugin-fs",
@@ -3370,23 +3371,6 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
-
-[[package]]
-name = "sniffer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "lazy_static",
- "pcap",
- "regex",
- "serde",
- "serde-aux",
- "serde_json",
- "tauri",
- "tauri-plugin-fs",
- "thiserror",
- "tokio",
-]
 
 [[package]]
 name = "socket2"
