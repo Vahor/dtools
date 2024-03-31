@@ -5,8 +5,11 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::sniffer::{network, protocol};
 use crate::{config, downloader};
+use crate::{
+    features,
+    sniffer::{network, protocol},
+};
 use thiserror::Error;
 use tracing::{error, info};
 use tracing_appender::{
@@ -26,8 +29,15 @@ pub struct Node {
 
     pub handle: Option<tauri::AppHandle>,
 
+    pub features: Features,
+
     /// Temporary store for data, often use in the packet listener
     pub store: Arc<Mutex<HashMap<String, String>>>,
+}
+
+#[derive(Debug)]
+pub struct Features {
+    pub chat: Arc<Mutex<features::chat::feature::ChatFeature>>,
 }
 
 impl Node {
@@ -55,6 +65,10 @@ impl Node {
         let packet_listener = network::PacketListener::new();
         let downloader = downloader::Downloader::new();
 
+        let features = Features {
+            chat: Arc::new(Mutex::new(features::chat::feature::ChatFeature::new())),
+        };
+
         let node = Arc::new(Node {
             data_dir: data_dir_path.to_path_buf(),
             config,
@@ -63,10 +77,12 @@ impl Node {
             protocol: Arc::new(protocol),
             packet_listener: Arc::new(Mutex::new(packet_listener)),
             handle,
+            features,
             store: Arc::new(Mutex::new(HashMap::new())),
         });
 
         node.packet_listener.lock().unwrap().set_node(node.clone());
+        node.features.chat.lock().unwrap().set_node(node.clone());
 
         if init {
             node.downloader.lock().unwrap().init(&node).await?;
