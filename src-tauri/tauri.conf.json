@@ -32,6 +32,8 @@
         "fullscreen": false,
         "width": 800,
         "height": 600,
+        "visible": false,
+        "transparent": true,
         "alwaysOnTop": true
       }
     ]
