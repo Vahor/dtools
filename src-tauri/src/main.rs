@@ -45,7 +45,8 @@ fn main() {
 
     info!("Starting Node...");
 
-    let specta_plugin = {
+    // TODO: use plugin when v2 is released
+    let _specta_plugin = {
         let specta_builder = ts::builder()
             .commands(tauri_specta::collect_commands![greet, app_ready])
             .config(specta::ts::ExportConfig::default().formatter(specta::ts::formatter::prettier));
