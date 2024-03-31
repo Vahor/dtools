@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use specta::Type;
 use uuid::Uuid;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -15,7 +16,7 @@ pub struct ChatTabConfig {
     pub filters: Option<ChatTabFilterTree>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Type)]
 pub struct ChatTabOptions {
     pub persistent: bool,
     pub visible: bool,

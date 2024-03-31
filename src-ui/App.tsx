@@ -51,6 +51,15 @@ function App() {
         <button type="submit">Greet</button>
       </form>
 
+      <button onClick={() => {
+        commands.createChatWindow({
+          visible: true,
+          persistent: true,
+          notify: true,
+        });
+      }}>Open Dialog</button>
+
+
       <p>{greetMsg}</p>
     </div>
   );

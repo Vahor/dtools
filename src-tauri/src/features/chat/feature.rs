@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use tauri::Manager;
-use tracing::error;
-
 use crate::node::Node;
+use tauri::{Manager, WindowEvent};
+use tracing::{error, info};
 
 use super::config::{ChatTabConfig, ChatTabOptions};
 
@@ -28,16 +27,27 @@ impl ChatFeature {
         let node = self.node.as_ref().unwrap();
         let handle = node.handle.as_ref().unwrap();
 
-        tauri::WebviewWindowBuilder::new(
+        let main_window = handle.get_webview_window("main").unwrap();
+
+        let window = tauri::WebviewWindowBuilder::new(
             handle,
             window_name.clone(),
             tauri::WebviewUrl::App("/chat".parse().unwrap()),
         )
+        .parent(&main_window)
+        .expect("Failed to set parent window")
         .title("Chat")
         .resizable(true)
         .always_on_top(true)
         .build()
         .unwrap();
+
+        window.on_window_event(|event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
+                info!("Chat window closed");
+            }
+            _ => {}
+        });
 
         self.update_window(window_name, config.options);
     }

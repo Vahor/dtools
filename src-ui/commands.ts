@@ -6,6 +6,9 @@ return await TAURI_INVOKE("greet", { name });
 },
 async appReady() : Promise<void> {
 return await TAURI_INVOKE("app_ready");
+},
+async createChatWindow(options: ChatTabOptions) : Promise<void> {
+return await TAURI_INVOKE("create_chat_window", { options });
 }
 }
 
@@ -13,7 +16,7 @@ return await TAURI_INVOKE("app_ready");
 
 /** user-defined types **/
 
-
+export type ChatTabOptions = { persistent: boolean; visible: boolean; notify: boolean }
 
 /** tauri-specta globals **/
 
