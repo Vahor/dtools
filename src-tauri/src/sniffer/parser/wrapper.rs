@@ -63,6 +63,7 @@ impl DataWrapper {
 
     pub fn read_byte(&mut self) -> u8 {
         let value = self.data[self.pos];
+        let value = u8::from_be_bytes([value]); // TODO: check if needed
         self.pos += 1;
         value
     }
@@ -155,23 +156,6 @@ impl DataWrapper {
             self.data[self.pos + 7],
         ]);
         self.pos += 8;
-        value
-    }
-
-    pub fn read(&mut self, len: usize) -> Vec<u8> {
-        if self.pos + len > self.data.len() {
-            panic!(
-                "Out of bounds: {} + {} > {}",
-                self.pos,
-                len,
-                self.data.len()
-            );
-        }
-        let mut value = Vec::with_capacity(len);
-        for i in 0..len {
-            value.push(self.data[self.pos + i]);
-        }
-        self.pos += len;
         value
     }
 }

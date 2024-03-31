@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use core::fmt::Debug;
 use pcap::{Activated, Capture};
+use serde::de;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 use tracing::{debug, info, warn};
@@ -135,32 +136,34 @@ impl PacketListener {
 
                 let packet_header = PacketHeader::from_vec(&data);
                 if packet_header.is_err() {
-                    warn!("Failed to parse packet header: {:?}", packet_header);
+                    // warn!("Failed to parse packet header: {:?}", packet_header);
                     continue;
                 }
                 let header = packet_header.unwrap();
 
+                let mut reorder = false;
                 if let Some(ref _last_packet_header) = last_packet_header {
                     if _last_packet_header.source_ip != header.source_ip {
                     } else if _last_packet_header.seq_num < header.seq_num {
                         buffer.reorder(header.body.clone()); // TODO: remove clone
-                    } else {
-                        buffer.extend_from_slice(header.body.as_slice());
+                        reorder = true;
                     }
                 }
 
-                let metadata = PacketMetadata::from_header(&header);
-                last_packet_header = Some(header);
+                if !reorder {
+                    buffer.extend_from_slice(&header.body);
+                }
+                let metadata = PacketMetadata::from_buffer(buffer.get_remaining().to_vec());
 
                 match metadata {
                     Err(err) => match err {
                         ParseResult::Incomplete => {
                             warn!("Incomplete packet: {:?}", err);
+                            last_packet_header = Some(header);
                         }
                         _ => {
                             warn!("Failed to parse metadata: {:?}", err);
                             buffer.clear();
-                            last_packet_header = None;
                         }
                     },
                     Ok(metadata) => {
@@ -275,8 +278,7 @@ mod tests {
 
         let mut listener = node.packet_listener.lock().unwrap();
         let id = "test".to_string();
-        // listener.subscribe(213, id.clone(), listener_fn);
-        listener.subscribe(4879, id.clone(), listener_fn);
+        listener.subscribe(1338, id.clone(), listener_fn);
 
         let res = listener.run_with_capture(cap.into());
         if let Err(err) = res {

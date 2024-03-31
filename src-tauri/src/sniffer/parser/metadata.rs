@@ -1,5 +1,6 @@
 use anyhow::Result;
 use thiserror::Error;
+use tracing::debug;
 
 #[derive(Debug, Clone)]
 pub enum PacketDirection {
@@ -15,7 +16,7 @@ pub enum ParseResult {
     #[error("Packet is incomplete")]
     Incomplete,
     #[error("Missing header")]
-    MissingHeader,
+    MissingHeader(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -44,9 +45,9 @@ impl PacketHeader {
         // Data
 
         if data.len() < 54 {
-            // 14 + 20 + 20
-            return Err(ParseResult::MissingHeader);
+            return Err(ParseResult::MissingHeader(data.len()));
         }
+
         let eth_header_length = 14;
         let ip_header_length = ((data[eth_header_length] & 0x0F) as usize) * 4;
         let seq_num =
@@ -56,19 +57,13 @@ impl PacketHeader {
         let tcp_header_length = ((data[tcp_start + 12] >> 4) as usize) * 4;
         let tcp_payload_start = tcp_start + tcp_header_length;
 
-        if data.len() < tcp_start + 20 {
-            // Packet is too short to contain a TCP header
-            return Err(ParseResult::Invalid);
-        }
+        let source_port = u16::from_be_bytes([data[tcp_start], data[tcp_start + 1]]);
+        let destination_port = u16::from_be_bytes([data[tcp_start + 2], data[tcp_start + 3]]);
 
         if data.len() < tcp_payload_start {
             // Packet is too short to contain a TCP payload
             return Err(ParseResult::Invalid);
         }
-
-        let source_port = u16::from_be_bytes([data[tcp_start], data[tcp_start + 1]]);
-        let destination_port = u16::from_be_bytes([data[tcp_start + 2], data[tcp_start + 3]]);
-
         Ok(PacketHeader {
             source_port,
             destination_port,
@@ -81,9 +76,7 @@ impl PacketHeader {
 }
 
 impl PacketMetadata {
-    pub fn from_header(header: &PacketHeader) -> Result<Self, ParseResult> {
-        let body = &header.body;
-
+    pub fn from_buffer(body: Vec<u8>) -> Result<Self, ParseResult> {
         if body.len() < 3 {
             return Err(ParseResult::Invalid);
         }
@@ -103,7 +96,7 @@ impl PacketMetadata {
         };
 
         let content_start = 2 + size_type as usize;
-        if body.len() < content_start + content_size {
+        if body.len() < (content_start + content_size) {
             return Err(ParseResult::Incomplete);
         }
 
