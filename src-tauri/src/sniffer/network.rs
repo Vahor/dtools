@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use core::fmt::Debug;
 use pcap::{Activated, Capture};
-use serde::de;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 use tracing::{debug, info, warn};

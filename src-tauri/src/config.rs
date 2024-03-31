@@ -6,18 +6,20 @@ use std::{
 use thiserror::Error;
 use tracing::info;
 
-use crate::constants::CONFIG_FILE_NAME;
+use crate::{
+    constants::CONFIG_FILE_NAME, features::chat::config::ChatConfig, sniffer::config::NetworkConfig,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConfig {
     pub game_version: String,
     pub network: NetworkConfig,
+    pub features: FeaturesConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkConfig {
-    pub port: u16,
-    pub interface: String,
+pub struct FeaturesConfig {
+    pub chat: ChatConfig,
 }
 
 impl NodeConfig {
@@ -45,9 +47,9 @@ impl Default for NodeConfig {
     fn default() -> Self {
         NodeConfig {
             game_version: "".to_string(),
-            network: NetworkConfig {
-                port: 5555,
-                interface: "en0".to_string(),
+            network: NetworkConfig::default(),
+            features: FeaturesConfig {
+                chat: ChatConfig::default(),
             },
         }
     }

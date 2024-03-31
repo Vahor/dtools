@@ -3,19 +3,51 @@
 
 use std::sync::Arc;
 
+use features::chat::config::ChatTabOptions;
 use node::Node;
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
+use tauri_specta::ts;
 use tracing::{error, info};
 
 pub mod config;
 pub mod constants;
 pub mod downloader;
+pub mod features;
 pub mod node;
 pub mod sniffer;
 
 #[tauri::command]
+#[specta::specta]
 fn greet(state: tauri::State<'_, Arc<Node>>, name: &str) -> String {
     state.greet(name)
+}
+
+#[tauri::command(async)]
+#[specta::specta]
+async fn app_ready(handle: tauri::AppHandle) {
+    info!("App is ready");
+    let main_window = handle.get_webview_window("main").unwrap();
+    main_window.show().unwrap();
+}
+
+fn fix_specta(path: &str) {
+    // replace all occurence of "plugin:tauri-specta" in the file
+    // This is because the plugin is not yet released and the permissions are not working
+    // TODO: This is a temporary fix
+
+    let content = std::fs::read_to_string(path).unwrap();
+    let content = content.replace("plugin:tauri-specta|", "");
+    std::fs::write(path, content).unwrap();
+    println!("Fixed specta");
+}
+
+#[tauri::command]
+#[specta::specta]
+fn create_chat_window(state: tauri::State<'_, Arc<Node>>, options: ChatTabOptions) {
+    // TODO: specta issue, we can't move the function in a separate file
+    let mut chat = state.features.chat.lock().unwrap();
+    chat.create_window(options);
+    info!("Chat window created");
 }
 
 fn main() {
@@ -23,31 +55,67 @@ fn main() {
 
     info!("Starting Node...");
 
-    let app = app
-        .plugin(tauri_plugin_shell::init())
-        // .plugin(tauri_plugin_store::init())
-        .plugin(tauri_plugin_fs::init());
+    // TODO: use plugin when v2 is released
+    let _specta_plugin = {
+        let specta_builder = ts::builder()
+            .commands(tauri_specta::collect_commands![
+                greet,
+                app_ready,
+                create_chat_window,
+            ])
+            .config(specta::ts::ExportConfig::default().formatter(specta::ts::formatter::prettier));
 
-    let app = app.setup(move |app| {
-        // let splashscreen_window = app.get_window("splashscreen").unwrap();
-        let main_window = app.get_webview_window("main").unwrap();
-        let handle = app.handle();
-        tauri::async_runtime::block_on(async {
-            let data_dir = handle.path().app_data_dir().unwrap();
-            let node = node::Node::new(data_dir, Some(handle.clone()), true).await;
-            if let Err(e) = node {
-                error!("Failed to initialize node: {:?}", e);
-                handle.exit(1);
-                return;
+        let path = "../src-ui/commands.ts";
+        #[cfg(debug_assertions)]
+        let specta_builder = specta_builder.path(path);
+
+        let plugin = specta_builder.into_plugin();
+
+        #[cfg(debug_assertions)]
+        fix_specta(path);
+
+        plugin
+    };
+
+    let app = app
+        .setup(move |app| {
+            // let splashscreen_window = app.get_window("splashscreen").unwrap();
+            let handle = app.handle();
+            tauri::async_runtime::block_on(async {
+                let data_dir = handle.path().app_data_dir().unwrap();
+                let node = node::Node::new(data_dir, Some(handle.clone()), true).await;
+                if let Err(e) = node {
+                    error!("Failed to initialize node: {:?}", e);
+                    handle.exit(1);
+                    return;
+                }
+                app.manage(node.unwrap());
+            });
+            Ok(())
+        })
+        .on_window_event(move |window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
+                if window.label() == "main" {
+                    info!("Main window closed");
+                    window.app_handle().exit(0);
+                }
             }
-            app.manage(node.unwrap());
-            main_window.show().unwrap();
+            _ => {}
         });
 
-        Ok(())
-    });
+    let app = app
+        // .plugin(specta_plugin)
+        .plugin(tauri_plugin_shell::init())
+        // .plugin(tauri_plugin_store::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_fs::init())
+        // TODO: use tauri-specta when v2 is released
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            app_ready,
+            create_chat_window
+        ]);
 
-    app.invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!())
+    app.run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
