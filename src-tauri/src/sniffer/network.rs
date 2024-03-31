@@ -142,9 +142,7 @@ impl PacketListener {
 
                 if let Some(ref _last_packet_header) = last_packet_header {
                     if _last_packet_header.source_ip != header.source_ip {
-                        last_packet_header = None;
                     } else if _last_packet_header.seq_num < header.seq_num {
-                        // todo reordering
                         buffer.reorder(header.body.clone()); // TODO: remove clone
                     } else {
                         buffer.extend_from_slice(header.body.as_slice());
@@ -156,30 +154,21 @@ impl PacketListener {
 
                 match metadata {
                     Err(err) => match err {
-                        ParseResult::Invalid => {
-                            buffer.clear();
-                            last_packet_header = None;
-                            warn!("Invalid packet: {:?}", err);
-                        }
                         ParseResult::Incomplete => {
                             warn!("Incomplete packet: {:?}", err);
                         }
                         _ => {
                             warn!("Failed to parse metadata: {:?}", err);
+                            buffer.clear();
+                            last_packet_header = None;
                         }
                     },
                     Ok(metadata) => {
-                        let size = metadata.size as usize;
-
-                        // TODO: check 64, 110, 16203 ids
-
                         // whitelist
-                        if true
-                            || PacketListener::_has_subscriptions(
-                                &subscriptions.lock().unwrap(),
-                                &metadata.id,
-                            )
-                        {
+                        if PacketListener::_has_subscriptions(
+                            &subscriptions.lock().unwrap(),
+                            &metadata.id,
+                        ) {
                             let mut parser = PacketParser::from_metadata(&metadata);
                             match parser.parse(&procol_manager) {
                                 Ok(packet) => {

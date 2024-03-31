@@ -1,7 +1,6 @@
 use indexmap::IndexMap;
 use serde_json::{Map, Number, Value};
 use thiserror::Error;
-use tracing::{debug, error, info, warn};
 
 use crate::sniffer::protocol::{
     EventId, EventName, ProtocolManager, ProtocolSchema, ProtocolVarType,
@@ -60,7 +59,6 @@ impl PacketParser {
         if let Some(parent) = &event.parent {
             let parent_type = protocol_manager.get_protocol_by_class(&parent);
             if parent_type.is_none() {
-                debug!("Unknown parent type: {:?}", parent);
                 return Err(PacketError::UnknownParentType(parent.clone()));
             }
 
@@ -160,17 +158,14 @@ impl PacketParser {
                     }
                     return Ok(Value::Array(values));
                 }
-                _ => {
-                    error!("Unknown vector length type: {:?}", vector.length);
-                }
+                _ => {}
             }
-            return Ok(Value::Null);
+            return Err(PacketError::FailedToParseAttribute(var_type.clone()));
         } else if let Some(type_id) = var_type.parse_type_id() {
             return self.parse_attribute(protocol_manager, &type_id);
         } else {
             let schema = protocol_manager.get_protocol_by_class(name);
             if schema.is_none() {
-                debug!("Unknown complex type: {:?}", name);
                 return Err(PacketError::UnknownParentType(name.clone()));
             }
             let schema = schema.unwrap();
@@ -198,6 +193,7 @@ mod tests {
 
     use super::*;
     use crate::sniffer::parser::metadata::PacketHeader;
+    use tracing::info;
 
     #[test]
     fn test_parse_packet() {
@@ -227,7 +223,7 @@ mod tests {
                 .collect::<Vec<u8>>();
 
             let header = PacketHeader::from_vec(&hex).unwrap();
-            let metadata = PacketMetadata::from_header(header).unwrap();
+            let metadata = PacketMetadata::from_header(&header).unwrap();
             let mut parser = PacketParser::from_metadata(&metadata);
 
             let packet = parser.parse(&procol_manager).unwrap();
