@@ -40,8 +40,8 @@ pcap = {workspace = true}
 
 [workspace.dependencies]
 tauri = { version = "2.0.0-beta", features = ["test"] }
-specta = { git = "https://github.com/Vahor/specta", features = ["functions","tauri"] } # TODO: use correct git repo when available
-tauri-specta = { git = "https://github.com/Vahor/tauri-specta", branch = "main", features = ["typescript", "javascript"] } # TODO: use correct git repo when available
+specta = { git = "https://github.com/Vahor/specta", features = ["functions", "tauri"] } # TODO: use correct git repo when available
+tauri-specta = { git = "https://github.com/Vahor/tauri-specta", branch = "main", features = ["typescript"] } # TODO: use correct git repo when available
 tauri-plugin-fs = "2.0.0-beta"
 tauri-plugin-store = "2.0.0-beta" # TODO
 tauri-plugin-shell = "2.0.0-beta"

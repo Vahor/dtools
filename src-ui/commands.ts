@@ -2,10 +2,10 @@
 
          export const commands = {
 async greet(name: string) : Promise<string> {
-return await TAURI_INVOKE("plugin:tauri-specta|greet", { name });
+return await TAURI_INVOKE("greet", { name });
 },
 async appReady() : Promise<void> {
-return await TAURI_INVOKE("plugin:tauri-specta|app_ready");
+return await TAURI_INVOKE("app_ready");
 }
 }
 

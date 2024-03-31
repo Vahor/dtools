@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use node::Node;
 use tauri::Manager;
-use tauri_specta::*;
+use tauri_specta::ts;
 use tracing::{error, info};
 
 pub mod config;
@@ -29,6 +29,17 @@ async fn app_ready(handle: tauri::AppHandle) {
     main_window.show().unwrap();
 }
 
+fn fix_specta(path: &str) {
+    // replace all occurence of "plugin:tauri-specta" in the file
+    // This is because the plugin is not yet released and the permissions are not working
+    // TODO: This is a temporary fix
+
+    let content = std::fs::read_to_string(path).unwrap();
+    let content = content.replace("plugin:tauri-specta|", "");
+    std::fs::write(path, content).unwrap();
+    println!("Fixed specta");
+}
+
 fn main() {
     let app = tauri::Builder::default();
 
@@ -39,18 +50,17 @@ fn main() {
             .commands(tauri_specta::collect_commands![greet, app_ready])
             .config(specta::ts::ExportConfig::default().formatter(specta::ts::formatter::prettier));
 
+        let path = "../src-ui/commands.ts";
         #[cfg(debug_assertions)]
-        let specta_builder = specta_builder.path("../src-ui/bindings.ts");
+        let specta_builder = specta_builder.path(path);
 
-        specta_builder.into_plugin()
+        let plugin = specta_builder.into_plugin();
+
+        #[cfg(debug_assertions)]
+        fix_specta(path);
+
+        plugin
     };
-
-    let app = app
-        .plugin(specta_plugin)
-        .plugin(tauri_plugin_shell::init())
-        // .plugin(tauri_plugin_store::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
-        .plugin(tauri_plugin_fs::init());
 
     let app = app.setup(move |app| {
         // let splashscreen_window = app.get_window("splashscreen").unwrap();
@@ -69,7 +79,15 @@ fn main() {
         Ok(())
     });
 
-    app.invoke_handler(tauri::generate_handler![greet, app_ready,])
-        .run(tauri::generate_context!())
+    let app = app
+        // .plugin(specta_plugin)
+        .plugin(tauri_plugin_shell::init())
+        // .plugin(tauri_plugin_store::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_fs::init())
+        // TODO: use tauri-specta when v2 is released
+        .invoke_handler(tauri::generate_handler![greet, app_ready]);
+
+    app.run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

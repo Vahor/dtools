@@ -1,0 +1,14 @@
+{
+  "default": null,
+  "permission": [
+    {
+      "identifier": "commands",
+      "commands": {
+        "allow": [
+          "tauri-specta.greet"
+        ],
+        "deny": []
+      }
+    }
+  ]
+}

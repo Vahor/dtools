@@ -28,9 +28,11 @@
     "windows": [
       {
         "title": "dtools",
+        "hiddenTitle": true,
+        "fullscreen": false,
         "width": 800,
         "height": 600,
-        "visible": false
+        "alwaysOnTop": true
       }
     ]
   }
