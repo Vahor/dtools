@@ -2,7 +2,8 @@
 
 ## Goals
 
-- [ ] Parse socket events
+- [x] Parse socket events
+  - Note: Some bugs but ok
 - [ ] Chat tabs based on regex
 - [ ] Option to make chat tabs persistant (keep history)
 - [ ] Kamas per session (⬆️ sell, ⬇️  buy)

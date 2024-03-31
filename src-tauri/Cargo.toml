@@ -7,21 +7,61 @@ edition = "2021"
 
 [workspace]
 members = [
-	"utils/reader"
 ]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
 tauri-build = { version = "2.0.0-beta", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0-beta", features = [] }
+tauri = { workspace = true }
+tauri-plugin-shell = "2.0.0-beta"
+tauri-plugin-fs = { workspace = true }
+tauri-plugin-store = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde-aux = { workspace = true }
+serde_plain = { workspace = true }
+
+lazy_static = {workspace = true}
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-appender = { workspace = true }
+reqwest = { workspace = true }
+regex = { workspace = true }
+fs_extra = { workspace = true }
+zip = { workspace = true }
+tempdir = { workspace = true }
+anyhow = { workspace = true }
+indexmap = { workspace = true }
+pcap = {workspace = true}
+
+[workspace.dependencies]
+tauri = { version = "2.0.0-beta", features = ["test"] }
+tauri-plugin-fs = "2.0.0-beta"
+tauri-plugin-store = "2.0.0-beta" # TODO
+tauri-plugin-shell = "2.0.0-beta"
+tauri-plugin-global-shortcut = "2.0.0-beta" # TODO
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri-plugin-shell = "2.0.0-beta"
-tauri-plugin-fs = "2.0.0-beta"
-once_cell = "1.19.0"
+serde-aux = "4.5.0"
+serde_plain = "1.0.2"
+anyhow = "1.0"
+reqwest = { version = "0.12.2", features = ["blocking"] }
+regex = "1.10.4"
+lazy_static = "1.4.0"
+zip = "0.6.6"
+tempdir = "0.3.7"
+fs_extra = "1.3.0"
+pcap = "1.3.0"
+tokio = { version = "1.37.0", features = ["full"] }
+thiserror = "1.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-appender = "0.2.3"
+indexmap = { version ="2.2.6", features = ["serde"] }
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
