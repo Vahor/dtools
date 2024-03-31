@@ -87,6 +87,7 @@ impl Node {
         if init {
             node.downloader.lock().unwrap().init(&node).await?;
             node.packet_listener.lock().unwrap().run()?;
+            node.features.chat.lock().unwrap().load_from_config();
         }
         info!("Node initialized successfully");
 

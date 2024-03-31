@@ -78,7 +78,7 @@ impl Manager {
 
         let config = RwLock::new(config);
 
-        info!("Config loaded successfully");
+        info!("Config loaded successfully from {:?}", config_file_path);
         Ok(Arc::new(Manager {
             config,
             data_dir_path,

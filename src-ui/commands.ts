@@ -16,7 +16,7 @@ return await TAURI_INVOKE("create_chat_window", { options });
 
 /** user-defined types **/
 
-export type ChatTabOptions = { persistent: boolean; visible: boolean; notify: boolean }
+export type ChatTabOptions = { persistent: boolean; notify: boolean }
 
 /** tauri-specta globals **/
 

@@ -46,7 +46,7 @@ fn fix_specta(path: &str) {
 fn create_chat_window(state: tauri::State<'_, Arc<Node>>, options: ChatTabOptions) {
     // TODO: specta issue, we can't move the function in a separate file
     let mut chat = state.features.chat.lock().unwrap();
-    chat.create_window(options);
+    chat.create_window();
     info!("Chat window created");
 }
 
@@ -94,7 +94,7 @@ fn main() {
             Ok(())
         })
         .on_window_event(move |window, event| match event {
-            WindowEvent::CloseRequested { api, .. } => {
+            WindowEvent::CloseRequested { .. } => {
                 if window.label() == "main" {
                     info!("Main window closed");
                     window.app_handle().exit(0);
