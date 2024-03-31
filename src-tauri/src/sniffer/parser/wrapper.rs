@@ -1,9 +1,12 @@
+use tracing::debug;
+
 #[derive(Debug, Clone)]
 pub struct DataWrapper {
     pub data: Vec<u8>,
     pub pos: usize,
 }
 
+/// Adapted from com.ankamagames.jerakine.network.CustomDataWrapper
 impl DataWrapper {
     pub fn new(data: Vec<u8>) -> Self {
         Self { data, pos: 0 }
@@ -21,11 +24,39 @@ impl DataWrapper {
         self.pos = pos;
     }
 
-    pub fn append_data(&mut self, data: &[u8]) {
+    pub fn extend_from_slice(&mut self, data: &[u8]) {
         self.data.extend_from_slice(data);
     }
 
-    pub fn reset(&mut self) {
+    pub fn debug_remaining(&self) {
+        // print body as string
+        let body = self
+            .get_remaining()
+            .iter()
+            .map(|b| *b as char)
+            .collect::<String>();
+        debug!("Body: {}", body);
+        debug!("Remaining: {:?}", self.get_remaining());
+    }
+
+    pub fn reorder(&mut self, buffer: Vec<u8>) {
+        let buffer_len = buffer.len();
+        let cut_off = self.data.len().saturating_sub(buffer_len) as usize;
+
+        let mut new_data = Vec::with_capacity(self.data.len() + buffer_len);
+        for i in 0..cut_off {
+            new_data.push(self.data[i]);
+        }
+        for b in buffer {
+            new_data.push(b);
+        }
+        for i in cut_off..self.data.len() {
+            new_data.push(self.data[i]);
+        }
+        self.data = new_data;
+    }
+
+    pub fn clear(&mut self) {
         self.pos = 0;
         self.data.clear();
     }
@@ -49,20 +80,14 @@ impl DataWrapper {
 
     pub fn read_var_int(&mut self) -> u32 {
         let mut value = 0;
-        let mut shift = 0;
-        loop {
+        for i in (0..32).step_by(7) {
             let byte = self.read_byte();
-            value |= ((byte & 0x7F) as u32) << shift;
-            shift += 7;
+            value |= ((byte & 0x7f) as u32) << i;
             if byte & 0x80 == 0 {
-                break;
-            }
-            // Max length of varint is 5 bytes
-            if shift > 35 {
-                panic!("Invalid varint");
+                return value;
             }
         }
-        value
+        panic!("Too much data");
     }
 
     pub fn read_short(&mut self) -> i16 {
@@ -89,42 +114,30 @@ impl DataWrapper {
 
     pub fn read_var_short(&mut self) -> u16 {
         let mut value = 0;
-        let mut shift = 0;
-        loop {
+        for i in (0..16).step_by(7) {
             let byte = self.read_byte();
-            value |= ((byte & 0x7F) as u16) << shift;
-            shift += 7;
+            value += ((byte & 0x7f) as u16) << i;
             if byte & 0x80 == 0 {
-                break;
+                return value;
             }
         }
-        value
+        panic!("Too much data");
     }
 
     pub fn read_var_long(&mut self) -> u64 {
         let mut value = 0;
-        let mut shift = 0;
-        loop {
+        for i in (0..64).step_by(7) {
             let byte = self.read_byte();
-            value |= ((byte & 0x7F) as u64) << shift;
-            shift += 7;
+            value |= ((byte & 0x7f) as u64) << i;
             if byte & 0x80 == 0 {
-                break;
+                return value;
             }
         }
-        value
+        panic!("Too much data");
     }
 
     pub fn read_utf(&mut self) -> String {
         let len = self.read_unsigned_short() as usize;
-        if self.pos + len > self.data.len() {
-            panic!(
-                "Invalid utf length: {} + {} > {}",
-                self.pos,
-                len,
-                self.data.len()
-            );
-        }
         let value = String::from_utf8(self.data[self.pos..self.pos + len].to_vec()).unwrap();
         self.pos += len;
         value

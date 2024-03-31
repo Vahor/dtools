@@ -4,12 +4,12 @@ use core::fmt::Debug;
 use pcap::{Activated, Capture};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 use crate::{
     node::Node,
     sniffer::parser::{
-        metadata::{PacketMetadata, ParseResult},
+        metadata::{PacketHeader, PacketMetadata, ParseResult},
         packet::PacketParser,
         wrapper::DataWrapper,
     },
@@ -121,41 +121,69 @@ impl PacketListener {
             return Err(PacketListenerError::InvalidCaptureDevice);
         }
 
+        debug!("Running packet listener");
         let subscriptions = self.subscriptions.clone();
         let procol_manager = self.node.as_ref().unwrap().protocol.clone();
         let node = self.node.clone().unwrap();
 
         tauri::async_runtime::spawn(async move {
-            let mut previous_frame_buffer_data: Vec<u8> = Vec::new();
+            let buffer = &mut DataWrapper::new(Vec::new());
+            let mut last_packet_header: Option<PacketHeader> = None;
+
             while let Ok(packet) = cap.next_packet() {
                 let data = packet.data.to_vec();
-                previous_frame_buffer_data.extend_from_slice(&data);
 
-                let final_data = previous_frame_buffer_data.clone();
-                let current_frame_buffer = &mut DataWrapper::new(final_data);
-                let metadata = PacketMetadata::from_buffer(current_frame_buffer);
+                let packet_header = PacketHeader::from_vec(&data);
+                if packet_header.is_err() {
+                    warn!("Failed to parse packet header: {:?}", packet_header);
+                    continue;
+                }
+                let header = packet_header.unwrap();
+
+                if let Some(ref _last_packet_header) = last_packet_header {
+                    if _last_packet_header.source_ip != header.source_ip {
+                        last_packet_header = None;
+                    } else if _last_packet_header.seq_num < header.seq_num {
+                        // todo reordering
+                        buffer.reorder(header.body.clone()); // TODO: remove clone
+                    } else {
+                        buffer.extend_from_slice(header.body.as_slice());
+                    }
+                }
+
+                let metadata = PacketMetadata::from_header(&header);
+                last_packet_header = Some(header);
 
                 match metadata {
                     Err(err) => match err {
                         ParseResult::Invalid => {
-                            previous_frame_buffer_data.clear();
+                            buffer.clear();
+                            last_packet_header = None;
+                            warn!("Invalid packet: {:?}", err);
                         }
-                        _ => {}
+                        ParseResult::Incomplete => {
+                            warn!("Incomplete packet: {:?}", err);
+                        }
+                        _ => {
+                            warn!("Failed to parse metadata: {:?}", err);
+                        }
                     },
                     Ok(metadata) => {
-                        previous_frame_buffer_data.clear();
+                        let size = metadata.size as usize;
 
                         // TODO: check 64, 110, 16203 ids
 
                         // whitelist
-                        if PacketListener::_has_subscriptions(
-                            &subscriptions.lock().unwrap(),
-                            &metadata.id,
-                        ) {
+                        if true
+                            || PacketListener::_has_subscriptions(
+                                &subscriptions.lock().unwrap(),
+                                &metadata.id,
+                            )
+                        {
                             let mut parser = PacketParser::from_metadata(&metadata);
                             match parser.parse(&procol_manager) {
                                 Ok(packet) => {
-                                    info!("Packet: {:?}", packet);
+                                    debug!("Parsed packet: {:?}", packet);
                                     PacketListener::_notify(
                                         &subscriptions.lock().unwrap(),
                                         &packet,
@@ -163,7 +191,10 @@ impl PacketListener {
                                     );
                                 }
                                 Err(err) => {
-                                    warn!("Failed to parse packet: {:?}", err);
+                                    warn!(
+                                        "Failed to parse packet: {:?} for {:?}",
+                                        err, metadata.id
+                                    );
                                 }
                             }
                         }

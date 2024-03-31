@@ -4,8 +4,7 @@ use thiserror::Error;
 
 use serde::*;
 use serde_aux::field_attributes::deserialize_option_number_from_string;
-use serde_enum_str::Deserialize_enum_str;
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::constants::{EVENTS_FILE, EXTRACTOR_DIR};
 
@@ -14,7 +13,7 @@ pub type EventName = String;
 
 pub type EventId = u16;
 
-#[derive(Deserialize_enum_str, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ProtocolVarType {
     String,
     VarInt,
@@ -23,9 +22,12 @@ pub enum ProtocolVarType {
     Short,
     Int,
     Byte,
+    None,
+    Boolean,
+    Double,
 
-    #[serde(other)]
-    Unknown(String),
+    #[serde(untagged)]
+    Other(EventName),
 }
 
 impl ProtocolVarType {
@@ -37,17 +39,69 @@ impl ProtocolVarType {
             | ProtocolVarType::VarShort
             | ProtocolVarType::Short
             | ProtocolVarType::Int
+            | ProtocolVarType::Boolean
+            | ProtocolVarType::None
+            | ProtocolVarType::Double
             | ProtocolVarType::Byte => true,
             _ => false,
         }
     }
 
-    pub fn is_unknown(&self) -> bool {
+    // The goal is to decompose Vector<ProcolVarType, ProtocolVarType> into a single ProtocolVarType
+    // same for TypeId<ProtocolVarType> and HashMap<ProtocolVarType, ProtocolVarType>
+    //
+    pub fn is_complex(&self) -> bool {
+        !self.is_primitive()
+    }
+
+    pub fn parse_vector(&self) -> Option<ProtocolVarTypeVector> {
         match self {
-            ProtocolVarType::Unknown(_) => true,
-            _ => false,
+            ProtocolVarType::Other(name) => {
+                let is_vector = name.starts_with("Vector<"); // TODO: clean this up, it's ugly
+                let is_type_id_vector = name.starts_with("TypeIdVector<");
+                if is_vector || is_type_id_vector {
+                    let name = match is_vector {
+                        true => name.trim_start_matches("Vector<").trim_end_matches(">"),
+                        false => name
+                            .trim_start_matches("TypeIdVector<")
+                            .trim_end_matches(">"),
+                    };
+                    let mut parts = name.split(",");
+                    let a = parts.next().unwrap().trim();
+                    let b = parts.next().unwrap().trim();
+
+                    let a = serde_plain::from_str::<ProtocolVarType>(a).unwrap();
+                    let b = serde_plain::from_str::<ProtocolVarType>(b).unwrap();
+
+                    return Some(ProtocolVarTypeVector {
+                        length: a,
+                        types: b,
+                    });
+                }
+                None
+            }
+            _ => None,
         }
     }
+
+    pub fn parse_type_id(&self) -> Option<ProtocolVarType> {
+        match self {
+            ProtocolVarType::Other(name) => {
+                if name.starts_with("TypeId<") {
+                    let name = name.trim_start_matches("TypeId<").trim_end_matches(">");
+                    let a = serde_plain::from_str::<ProtocolVarType>(name).unwrap();
+                    return Some(a);
+                }
+                None
+            }
+            _ => None,
+        }
+    }
+}
+
+pub struct ProtocolVarTypeVector {
+    pub length: ProtocolVarType,
+    pub types: ProtocolVarType,
 }
 
 #[derive(Deserialize, Debug)]

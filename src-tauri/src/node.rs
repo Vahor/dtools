@@ -70,6 +70,7 @@ impl Node {
 
         if init {
             node.downloader.lock().unwrap().init(&node).await?;
+            node.packet_listener.lock().unwrap().run()?;
         }
         info!("Node initialized successfully");
 
@@ -142,4 +143,6 @@ pub enum NodeError {
     FailedToCreateDataDir(#[from] std::io::Error),
     #[error("Failed to initialize ProtocolManager")]
     FailedToInitializeProtocol(#[from] protocol::ProtocolError),
+    #[error("Failed to run packet listener")]
+    FailedToRunPacketListener(#[from] network::PacketListenerError),
 }
