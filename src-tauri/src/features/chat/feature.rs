@@ -212,4 +212,29 @@ impl ChatFeature {
             })
             .unwrap();
     }
+
+    pub fn get_window_config(&self, window_id: &String) -> Option<super::config::ChatTabConfig> {
+        let window_id = window_id.replace(WINDOW_PREFIX, "");
+        let config = self.config.as_ref().unwrap().config.read().unwrap();
+        let tab = config.views.get(&window_id);
+        tab.cloned()
+    }
+
+    pub fn update_window_config(
+        &self,
+        window_id: &String,
+        new_config: super::config::ChatTabConfig,
+    ) {
+        let window_id = window_id.replace(WINDOW_PREFIX, "");
+        self.config
+            .as_ref()
+            .unwrap()
+            .update_config_sync(|config| {
+                let tab = config.views.get_mut(&window_id);
+                if let Some(tab) = tab {
+                    *tab = new_config;
+                }
+            })
+            .unwrap();
+    }
 }

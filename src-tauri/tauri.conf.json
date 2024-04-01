@@ -29,11 +29,15 @@
     "windows": [
       {
         "title": "dtools",
-        "hiddenTitle": true,
         "fullscreen": false,
-        "minHeight": 600,
-        "minWidth": 800,
+        "minHeight": 500,
+        "minWidth": 768,
+        "height": 750,
+        "width": 1400,
         "visible": false,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
         "url": "dashboard"
       }
     ]

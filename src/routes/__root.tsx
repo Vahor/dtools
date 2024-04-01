@@ -10,10 +10,13 @@ export const Route = createRootRoute({
 function App() {
   useEffect(() => {
     commands.appReady();
+    // add dark mode class to document.body
+    document.body.classList.add('dark');
   }, []);
 
   return (
     <>
+      <div className="h-6 w-full" data-tauri-drag-region></div>
       <Outlet />
       <TanStackRouterDevtools />
     </>

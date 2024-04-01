@@ -1,0 +1,409 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.6rem;
+
+    --alpha-black-alpha-10: rgb(14, 18, 27 / 0.1);
+    --alpha-black-alpha-16: rgb(14, 18, 27 / 0.16);
+    --alpha-black-alpha-24: rgb(14, 18, 27 / 0.24);
+    --alpha-blue-alpha-10: rgb(71, 108, 255 / 0.1);
+    --alpha-blue-alpha-16: rgb(71, 108, 255 / 0.16);
+    --alpha-blue-alpha-24: rgb(71, 108, 255 / 0.24);
+    --alpha-green-alpha-10: rgb(31, 193, 107 / 0.1);
+    --alpha-green-alpha-16: rgb(31, 193, 107 / 0.16);
+    --alpha-green-alpha-24: rgb(31, 193, 107 / 0.24);
+    --alpha-neutral-alpha-10: rgb(153, 160, 174 / 0.1);
+    --alpha-neutral-alpha-16: rgb(153, 160, 174 / 0.16);
+    --alpha-neutral-alpha-24: rgb(153, 160, 174 / 0.24);
+    --alpha-orange-alpha-10: rgb(255, 145, 71 / 0.1);
+    --alpha-orange-alpha-16: rgb(255, 145, 71 / 0.16);
+    --alpha-orange-alpha-24: rgb(255, 145, 71 / 0.24);
+    --alpha-pink-alpha-10: rgb(251, 75, 163 / 0.1);
+    --alpha-pink-alpha-16: rgb(251, 75, 163 / 0.16);
+    --alpha-pink-alpha-24: rgb(251, 75, 163 / 0.24);
+    --alpha-purple-alpha-10: rgb(120, 77, 239 / 0.1);
+    --alpha-purple-alpha-16: rgb(120, 77, 239 / 0.16);
+    --alpha-purple-alpha-24: rgb(120, 77, 239 / 0.24);
+    --alpha-red-alpha-10: rgb(251, 55, 72 / 0.1);
+    --alpha-red-alpha-16: rgb(251, 55, 72 / 0.16);
+    --alpha-red-alpha-24: rgb(251, 55, 72 / 0.24);
+    --alpha-sky-alpha-10: rgb(71, 194, 255 / 0.1);
+    --alpha-sky-alpha-16: rgb(71, 194, 255 / 0.16);
+    --alpha-sky-alpha-24: rgb(71, 194, 255 / 0.24);
+    --alpha-teal-alpha-10: rgb(34, 211, 187 / 0.1);
+    --alpha-teal-alpha-16: rgb(34, 211, 187 / 0.16);
+    --alpha-teal-alpha-24: rgb(34, 211, 187 / 0.24);
+    --alpha-white-alpha-10: rgb(255, 255, 255 / 0.1);
+    --alpha-white-alpha-16: rgb(255, 255, 255 / 0.16);
+    --alpha-white-alpha-24: rgb(255, 255, 255 / 0.24);
+    --alpha-yellow-alpha-10: rgb(251, 198, 75 / 0.1);
+    --alpha-yellow-alpha-16: rgb(251, 198, 75 / 0.16);
+    --alpha-yellow-alpha-24: rgb(251, 198, 75 / 0.24);
+    --blue-100: rgb(213, 226, 255);
+    --blue-200: rgb(192, 213, 255);
+    --blue-300: rgb(151, 186, 255);
+    --blue-400: rgb(104, 149, 255);
+    --blue-50: rgb(235, 241, 255);
+    --blue-500: rgb(51, 92, 255);
+    --blue-600: rgb(53, 89, 233);
+    --blue-700: rgb(37, 71, 208);
+    --blue-800: rgb(31, 59, 173);
+    --blue-900: rgb(24, 47, 139);
+    --blue-950: rgb(18, 35, 104);
+    --green-100: rgb(208, 251, 233);
+    --green-200: rgb(194, 245, 218);
+    --green-300: rgb(132, 235, 180);
+    --green-400: rgb(62, 224, 137);
+    --green-50: rgb(224, 250, 236);
+    --green-500: rgb(31, 193, 107);
+    --green-600: rgb(29, 175, 97);
+    --green-700: rgb(23, 140, 78);
+    --green-800: rgb(26, 117, 68);
+    --green-900: rgb(22, 100, 59);
+    --green-950: rgb(11, 70, 39);
+    --neutral-0: rgb(255, 255, 255);
+    --neutral-100: rgb(242, 245, 248);
+    --neutral-200: rgb(225, 228, 234);
+    --neutral-300: rgb(202, 207, 216);
+    --neutral-400: rgb(153, 160, 174);
+    --neutral-50: rgb(245, 247, 250);
+    --neutral-500: rgb(113, 119, 132);
+    --neutral-600: rgb(82, 88, 102);
+    --neutral-700: rgb(43, 48, 59);
+    --neutral-800: rgb(34, 37, 48);
+    --neutral-900: rgb(24, 27, 37);
+    --neutral-950: rgb(14, 18, 27);
+    --orange-100: rgb(255, 227, 213);
+    --orange-200: rgb(255, 213, 192);
+    --orange-300: rgb(255, 186, 151);
+    --orange-400: rgb(255, 154, 104);
+    --orange-50: rgb(255, 241, 235);
+    --orange-500: rgb(255, 132, 71);
+    --orange-600: rgb(233, 113, 53);
+    --orange-700: rgb(208, 94, 37);
+    --orange-800: rgb(173, 78, 31);
+    --orange-900: rgb(139, 62, 24);
+    --orange-950: rgb(104, 47, 18);
+    --pink-100: rgb(255, 213, 234);
+    --pink-200: rgb(255, 192, 223);
+    --pink-300: rgb(255, 151, 203);
+    --pink-400: rgb(255, 104, 179);
+    --pink-50: rgb(255, 235, 244);
+    --pink-500: rgb(251, 75, 163);
+    --pink-600: rgb(233, 53, 143);
+    --pink-700: rgb(208, 37, 122);
+    --pink-800: rgb(173, 31, 102);
+    --pink-900: rgb(139, 24, 82);
+    --pink-950: rgb(104, 18, 61);
+    --purple-100: rgb(220, 213, 255);
+    --purple-200: rgb(202, 192, 255);
+    --purple-300: rgb(168, 151, 255);
+    --purple-400: rgb(140, 113, 246);
+    --purple-50: rgb(239, 235, 255);
+    --purple-500: rgb(125, 82, 244);
+    --purple-600: rgb(105, 62, 224);
+    --purple-700: rgb(91, 44, 201);
+    --purple-800: rgb(76, 37, 167);
+    --purple-900: rgb(61, 29, 134);
+    --purple-950: rgb(53, 26, 117);
+    --red-100: rgb(255, 213, 216);
+    --red-200: rgb(255, 192, 197);
+    --red-300: rgb(255, 151, 160);
+    --red-400: rgb(255, 104, 117);
+    --red-50: rgb(255, 235, 236);
+    --red-500: rgb(251, 55, 72);
+    --red-600: rgb(233, 53, 68);
+    --red-700: rgb(208, 37, 51);
+    --red-800: rgb(173, 31, 43);
+    --red-900: rgb(139, 24, 34);
+    --red-950: rgb(104, 18, 25);
+    --sky-100: rgb(213, 241, 255);
+    --sky-200: rgb(192, 234, 255);
+    --sky-300: rgb(151, 220, 255);
+    --sky-400: rgb(104, 205, 255);
+    --sky-50: rgb(235, 248, 255);
+    --sky-500: rgb(71, 194, 255);
+    --sky-600: rgb(53, 173, 233);
+    --sky-700: rgb(37, 151, 208);
+    --sky-800: rgb(31, 126, 173);
+    --sky-900: rgb(24, 101, 139);
+    --sky-950: rgb(18, 75, 104);
+    --teal-100: rgb(208, 251, 245);
+    --teal-200: rgb(194, 245, 238);
+    --teal-300: rgb(132, 235, 221);
+    --teal-400: rgb(63, 222, 201);
+    --teal-50: rgb(228, 251, 248);
+    --teal-500: rgb(34, 211, 187);
+    --teal-600: rgb(29, 175, 156);
+    --teal-700: rgb(23, 140, 125);
+    --teal-800: rgb(26, 117, 105);
+    --teal-900: rgb(22, 100, 90);
+    --teal-950: rgb(11, 70, 62);
+    --yellow-100: rgb(255, 239, 204);
+    --yellow-200: rgb(255, 236, 192);
+    --yellow-300: rgb(255, 224, 151);
+    --yellow-400: rgb(255, 210, 104);
+    --yellow-50: rgb(255, 250, 235);
+    --yellow-500: rgb(246, 181, 30);
+    --yellow-600: rgb(230, 168, 25);
+    --yellow-700: rgb(201, 154, 44);
+    --yellow-800: rgb(167, 128, 37);
+    --yellow-900: rgb(134, 102, 29);
+    --yellow-950: rgb(98, 76, 24);
+
+    /* colors */
+    --bg-soft-200: var(--neutral-200);
+    --bg-strong-950: var(--neutral-950);
+    --bg-sub-300: var(--neutral-300);
+    --bg-surface-800: var(--neutral-800);
+    --bg-weak-50: var(--neutral-50);
+    --bg-white-0: var(--neutral-0);
+    --illustration-soft-200: var(--neutral-200);
+    --illustration-strong-400: var(--neutral-400);
+    --illustration-sub-300: var(--neutral-300);
+    --illustration-weak-100: var(--neutral-100);
+    --illustration-white-0: var(--neutral-0);
+    --overlay-overlay: rgb(2, 13, 23 / 0.24);
+    --state-away-base: var(--yellow-500);
+    --state-away-dark: var(--yellow-950);
+    --state-away-light: var(--yellow-200);
+    --state-away-lighter: var(--yellow-50);
+    --state-error-base: var(--red-500);
+    --state-error-dark: var(--red-950);
+    --state-error-light: var(--red-200);
+    --state-error-lighter: var(--red-50);
+    --state-faded-base: var(--neutral-500);
+    --state-faded-dark: var(--neutral-800);
+    --state-faded-light: var(--neutral-200);
+    --state-faded-lighter: var(--neutral-100);
+    --state-feature-base: var(--purple-500);
+    --state-feature-dark: var(--purple-950);
+    --state-feature-light: var(--purple-200);
+    --state-feature-lighter: var(--purple-50);
+    --state-highlighted-base: var(--pink-500);
+    --state-highlighted-dark: var(--pink-950);
+    --state-highlighted-light: var(--pink-200);
+    --state-highlighted-lighter: var(--pink-50);
+    --state-information-base: var(--blue-500);
+    --state-information-dark: var(--blue-950);
+    --state-information-light: var(--blue-200);
+    --state-information-lighter: var(--blue-50);
+    --state-stable-base: var(--teal-500);
+    --state-stable-dark: var(--teal-950);
+    --state-stable-light: var(--teal-200);
+    --state-stable-lighter: var(--teal-50);
+    --state-success-base: var(--green-500);
+    --state-success-dark: var(--green-950);
+    --state-success-light: var(--green-200);
+    --state-success-lighter: var(--green-50);
+    --state-verified-base: var(--sky-500);
+    --state-verified-dark: var(--sky-950);
+    --state-verified-light: var(--sky-200);
+    --state-verified-lighter: var(--sky-50);
+    --state-warning-base: var(--orange-500);
+    --state-warning-dark: var(--orange-950);
+    --state-warning-light: var(--orange-200);
+    --state-warning-lighter: var(--orange-50);
+    --static-static-black: var(--neutral-950);
+    --static-static-white: var(--neutral-0);
+    --stroke-soft-200: var(--neutral-200);
+    --stroke-strong-950: var(--neutral-950);
+    --stroke-sub-300: var(--neutral-300);
+    --stroke-white-0: var(--neutral-0);
+    --text-disabled-300: var(--neutral-300);
+    --text-soft-400: var(--neutral-400);
+    --text-strong-950: var(--neutral-950);
+    --text-sub-600: var(--neutral-600);
+    --text-white-0: var(--neutral-0);
+
+    --radius-4: 0.25rem;
+    --radius-6: 0.375rem;
+    --radius-8: 0.5rem;
+    --radius-10: 0.625rem;
+    --radius-12: 0.75rem;
+    --radius-16: 1rem;
+    --radius-20: 1.25rem;
+    --radius-24: 1.5rem;
+    --radius-full: 62.4375rem;
+    --spacing-0: 0rem;
+    --spacing-2: 0.125rem;
+    --spacing-4: 0.25rem;
+    --spacing-6: 0.375rem;
+    --spacing-8: 0.5rem;
+    --spacing-10: 0.625rem;
+    --spacing-12: 0.75rem;
+    --spacing-14: 0.875rem;
+    --spacing-16: 1rem;
+    --spacing-48: 3rem;
+  }
+  .dark {
+    /* colors */
+    --bg-soft-200: var(--neutral-700);
+    --bg-strong-950: var(--neutral-0);
+    --bg-sub-300: var(--neutral-600);
+    --bg-surface-800: var(--neutral-200);
+    --bg-weak-50: var(--neutral-900);
+    --bg-white-0: var(--neutral-950);
+    --illustration-soft-200: var(--neutral-800);
+    --illustration-strong-400: var(--neutral-600);
+    --illustration-sub-300: var(--neutral-700);
+    --illustration-weak-100: var(--neutral-900);
+    --illustration-white-0: var(--neutral-950);
+    --overlay-overlay: rgb(82, 88, 102 / 0.32);
+    --social-amazon: rgb(255, 255, 255);
+    --social-apple: rgb(255, 255, 255);
+    --social-github: rgb(255, 255, 255);
+    --social-notion: rgb(255, 255, 255);
+    --social-tidal: rgb(255, 255, 255);
+    --social-twitter: rgb(255, 255, 255);
+    --social-zendesk: rgb(255, 255, 255);
+    --state-away-base: var(--yellow-600);
+    --state-away-dark: var(--yellow-400);
+    --state-away-light: var(--alpha-yellow-alpha-24);
+    --state-away-lighter: var(--alpha-yellow-alpha-16);
+    --state-error-base: var(--red-600);
+    --state-error-dark: var(--red-400);
+    --state-error-light: var(--alpha-red-alpha-24);
+    --state-error-lighter: var(--alpha-red-alpha-16);
+    --state-faded-base: var(--neutral-500);
+    --state-faded-dark: var(--neutral-300);
+    --state-faded-light: var(--alpha-neutral-alpha-24);
+    --state-faded-lighter: var(--alpha-neutral-alpha-16);
+    --state-feature-base: var(--purple-500);
+    --state-feature-dark: var(--purple-400);
+    --state-feature-light: var(--alpha-purple-alpha-24);
+    --state-feature-lighter: var(--alpha-purple-alpha-16);
+    --state-highlighted-base: var(--pink-600);
+    --state-highlighted-dark: var(--pink-400);
+    --state-highlighted-light: var(--alpha-pink-alpha-24);
+    --state-highlighted-lighter: var(--alpha-pink-alpha-16);
+    --state-information-base: var(--blue-500);
+    --state-information-dark: var(--blue-400);
+    --state-information-light: var(--alpha-blue-alpha-24);
+    --state-information-lighter: var(--alpha-blue-alpha-16);
+    --state-stable-base: var(--teal-600);
+    --state-stable-dark: var(--teal-400);
+    --state-stable-light: var(--alpha-teal-alpha-24);
+    --state-stable-lighter: var(--alpha-teal-alpha-16);
+    --state-success-base: var(--green-600);
+    --state-success-dark: var(--green-400);
+    --state-success-light: var(--alpha-green-alpha-16);
+    --state-success-lighter: var(--alpha-green-alpha-10);
+    --state-verified-base: var(--sky-600);
+    --state-verified-dark: var(--sky-400);
+    --state-verified-light: var(--alpha-sky-alpha-24);
+    --state-verified-lighter: var(--alpha-sky-alpha-16);
+    --state-warning-base: var(--orange-600);
+    --state-warning-dark: var(--orange-400);
+    --state-warning-light: var(--alpha-orange-alpha-24);
+    --state-warning-lighter: var(--alpha-orange-alpha-16);
+    --static-static-black: var(--neutral-950);
+    --static-static-white: var(--neutral-0);
+    --stroke-soft-200: var(--neutral-700);
+    --stroke-strong-950: var(--neutral-0);
+    --stroke-sub-300: var(--neutral-600);
+    --stroke-white-0: var(--neutral-950);
+    --text-disabled-300: var(--neutral-600);
+    --text-soft-400: var(--neutral-500);
+    --text-strong-950: var(--neutral-0);
+    --text-sub-600: var(--neutral-400);
+    --text-white-0: var(--neutral-950);
+  }
+  [data-theme="blue"] {
+    /* colors */
+    --primary-alpha-10: var(--alpha-blue-alpha-10);
+    --primary-alpha-16: var(--alpha-blue-alpha-16);
+    --primary-alpha-24: var(--alpha-blue-alpha-24);
+    --primary-base: var(--blue-500);
+    --primary-dark: var(--blue-800);
+    --primary-darker: var(--blue-700);
+  }
+  [data-theme="purple"] {
+    /* colors */
+    --primary-alpha-10: var(--alpha-purple-alpha-10);
+    --primary-alpha-16: var(--alpha-purple-alpha-16);
+    --primary-alpha-24: var(--alpha-purple-alpha-24);
+    --primary-base: var(--purple-500);
+    --primary-dark: var(--purple-800);
+    --primary-darker: var(--purple-700);
+  }
+  [data-theme="orange"] {
+    /* colors */
+    --primary-alpha-10: var(--alpha-orange-alpha-10);
+    --primary-alpha-16: var(--alpha-orange-alpha-16);
+    --primary-alpha-24: var(--alpha-orange-alpha-24);
+    --primary-base: var(--orange-500);
+    --primary-dark: var(--orange-800);
+    --primary-darker: var(--orange-700);
+  }
+  [data-theme="sky"] {
+    /* colors */
+    --primary-alpha-10: var(--alpha-sky-alpha-10);
+    --primary-alpha-16: var(--alpha-sky-alpha-16);
+    --primary-alpha-24: var(--alpha-sky-alpha-24);
+    --primary-base: var(--sky-600);
+    --primary-dark: var(--sky-800);
+    --primary-darker: var(--sky-700);
+  }
+
+  * {
+    @apply border-soft outline-primary-base min-w-0;
+  }
+
+  .focus-ring {
+    @apply focus-visible:ring-primary-base focus:ring-primary-base ring-offset-white focus:ring-2 focus:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .focus-ring-force {
+    @apply ring-primary-base outline-none ring-2 ring-offset-2 ring-offset-white;
+  }
+
+  a {
+    width: fit-content;
+    display: inline-block;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    @apply min-h-full;
+  }
+
+  body {
+    @apply text-strong flex min-h-full flex-col antialiased;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'salt', 'ss01', 'ss03', 'cv01', 'cv02', 'cv03', 'cv04', 'cv05',
+      'cv06', 'cv07', 'cv08', 'cv09', 'cv10';
+    background-color: var(--bg-white-0);
+  }
+
+  html,
+  body,
+  div#__next {
+    @apply h-full;
+  }
+
+  .z-1 {
+    z-index: 1;
+  }
+}
+
+body.lock-scroll {
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+  position: relative !important;
+  padding-left: 0;
+  padding-top: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-top: 0;
+  margin-right: 15px !important;
+}
+
+.rdp-vhidden {
+  display: none;
+}

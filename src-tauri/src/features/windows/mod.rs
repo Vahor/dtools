@@ -1,20 +1,19 @@
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, WebviewUrl, Wry};
-use uuid::Uuid;
 
 use crate::node::Node;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct WindowOptions {
     #[serde(rename = "type")]
     pub type_: WindowType,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, specta::Type)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "camelCase")]
 pub enum WindowType {
-    Tab(Uuid),
+    Tab(String),
     Window,
 }
 
@@ -56,7 +55,9 @@ impl WindowBuilder {
                 .title(&options.window_label)
                 .hidden_title(true)
                 .resizable(true)
-                .always_on_top(true);
+                .transparent(true)
+                .always_on_top(true)
+                .title_bar_style(tauri::TitleBarStyle::Overlay);
 
         return Some(window);
     }

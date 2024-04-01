@@ -2,5 +2,10 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-capability",
   "description": "Capability for the main window",
-  "permissions": []
+  "windows": [
+    "*"
+  ],
+  "permissions": [
+    "window:allow-start-dragging"
+  ]
 }

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
 use specta::Type;
 
 use crate::{features::windows::WindowOptions, sniffer::parser::packet::Packet};
@@ -12,7 +11,7 @@ pub struct ChatViewsConfig {
     pub views: HashMap<String, ChatTabConfig>,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct ChatTabConfig {
     pub options: ChatTabOptions,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,7 +36,6 @@ pub struct ChatEvent {
 
 impl ChatEvent {
     pub fn from_packet(packet: &Packet) -> Self {
-        dbg!(&packet.data);
         ChatEvent {
             channel: packet.data.get("channel").unwrap().as_u64().unwrap() as u8,
             sender_name: packet
@@ -59,7 +57,7 @@ impl ChatEvent {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub enum ChatTabFilterTree {
     And(Vec<ChatTabFilterTree>),
@@ -85,7 +83,7 @@ impl ChatTabFilterTree {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, specta::Type)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "camelCase")]
 pub enum ChatTabFilterType {

@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ChatEvent, events } from '../../commands'
-import { getCurrent } from "@tauri-apps/api/webviewWindow";
+import { getCurrent } from '@tauri-apps/api/webviewWindow';
 import { useEffect, useRef, useState } from 'react';
+import { ChatEvent, events } from '../../../commands.ts';
 
-export const Route = createFileRoute('/features/chat')({
+export const Route = createFileRoute('/features/(chat)/chat')({
   component: ChatComponent,
 })
 
@@ -37,4 +37,7 @@ function ChatComponent() {
       }
     </div >
   )
+}
+
+const ChatMessage = ({ message }: { message: ChatEvent }) => {
 }

@@ -7,6 +7,20 @@ export const commands = {
   async createChatWindow(): Promise<void> {
     return await TAURI_INVOKE("create_chat_window");
   },
+  async getChatWindowConfig(windowId: string): Promise<ChatTabConfig | null> {
+    return await TAURI_INVOKE("get_chat_window_config", {
+      windowId,
+    });
+  },
+  async updateChatWindowConfig(
+    windowId: string,
+    config: ChatTabConfig,
+  ): Promise<void> {
+    return await TAURI_INVOKE("update_chat_window_config", {
+      windowId,
+      config,
+    });
+  },
 };
 
 export const events = __makeEvents__<{
@@ -23,6 +37,23 @@ export type ChatEvent = {
   content: string;
   timestamp: number;
 };
+export type ChatTabConfig = {
+  options: ChatTabOptions;
+  filters?: ChatTabFilterTree | null;
+  window?: WindowOptions | null;
+};
+export type ChatTabFilterTree =
+  | { and: ChatTabFilterTree[] }
+  | { or: ChatTabFilterTree[] }
+  | { filter: ChatTabFilterType };
+export type ChatTabFilterType =
+  | { type: "channel"; value: number }
+  | { type: "player"; value: string }
+  | { type: "word"; value: string }
+  | { type: "item"; value: number };
+export type ChatTabOptions = { persistent: boolean; notify: boolean };
+export type WindowOptions = { type: WindowType };
+export type WindowType = { type: "tab"; value: string } | { type: "window" };
 
 /** tauri-specta globals **/
 

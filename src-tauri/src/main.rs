@@ -45,6 +45,27 @@ fn create_chat_window(state: tauri::State<'_, Arc<Node>>) {
     info!("Chat window created");
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_chat_window_config(
+    state: tauri::State<'_, Arc<Node>>,
+    window_id: String,
+) -> Option<features::chat::config::ChatTabConfig> {
+    let chat = state.features.chat.read().unwrap();
+    chat.get_window_config(&window_id)
+}
+
+#[tauri::command]
+#[specta::specta]
+fn update_chat_window_config(
+    state: tauri::State<'_, Arc<Node>>,
+    window_id: String,
+    config: features::chat::config::ChatTabConfig,
+) {
+    let chat = state.features.chat.write().unwrap();
+    chat.update_window_config(&window_id, config);
+}
+
 fn main() {
     let app = tauri::Builder::default();
 
@@ -57,6 +78,8 @@ fn main() {
             .commands(tauri_specta::collect_commands![
                 app_ready,
                 create_chat_window,
+                get_chat_window_config,
+                update_chat_window_config
             ])
             .config(
                 specta::ts::ExportConfig::default()
@@ -109,7 +132,12 @@ fn main() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_fs::init())
         // TODO: use tauri-specta when v2 is released
-        .invoke_handler(tauri::generate_handler![app_ready, create_chat_window]);
+        .invoke_handler(tauri::generate_handler![
+            app_ready,
+            create_chat_window,
+            get_chat_window_config,
+            update_chat_window_config
+        ]);
 
     app.run(tauri::generate_context!())
         .expect("error while running tauri application");

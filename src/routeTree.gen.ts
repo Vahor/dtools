@@ -13,9 +13,9 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as FeaturesChatImport } from './routes/features/chat'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
 import { Route as DashboardLayoutIndexImport } from './routes/dashboard/_layout/index'
+import { Route as FeatureschatChatImport } from './routes/features/(chat)/chat'
 import { Route as DashboardLayoutSettingsImport } from './routes/dashboard/_layout/settings'
 
 // Create Virtual Routes
@@ -29,11 +29,6 @@ const DashboardRoute = DashboardImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const FeaturesChatRoute = FeaturesChatImport.update({
-  path: '/features/chat',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const DashboardLayoutRoute = DashboardLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => DashboardRoute,
@@ -42,6 +37,11 @@ const DashboardLayoutRoute = DashboardLayoutImport.update({
 const DashboardLayoutIndexRoute = DashboardLayoutIndexImport.update({
   path: '/',
   getParentRoute: () => DashboardLayoutRoute,
+} as any)
+
+const FeatureschatChatRoute = FeatureschatChatImport.update({
+  path: '/features/chat',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const DashboardLayoutSettingsRoute = DashboardLayoutSettingsImport.update({
@@ -61,13 +61,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutImport
       parentRoute: typeof DashboardRoute
     }
-    '/features/chat': {
-      preLoaderRoute: typeof FeaturesChatImport
-      parentRoute: typeof rootRoute
-    }
     '/dashboard/_layout/settings': {
       preLoaderRoute: typeof DashboardLayoutSettingsImport
       parentRoute: typeof DashboardLayoutImport
+    }
+    '/features/(chat)/chat': {
+      preLoaderRoute: typeof FeatureschatChatImport
+      parentRoute: typeof rootRoute
     }
     '/dashboard/_layout/': {
       preLoaderRoute: typeof DashboardLayoutIndexImport
@@ -85,7 +85,7 @@ export const routeTree = rootRoute.addChildren([
       DashboardLayoutIndexRoute,
     ]),
   ]),
-  FeaturesChatRoute,
+  FeatureschatChatRoute,
 ])
 
 /* prettier-ignore-end */
