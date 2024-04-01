@@ -134,5 +134,5 @@ pub enum DownloaderError {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
-    ConfigError(#[from] crate::config::NodeConfigError),
+    ConfigError(#[from] crate::config::ConfigError),
 }

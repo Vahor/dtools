@@ -15,10 +15,10 @@ use crate::{
     },
 };
 
-use super::{parser::packet::Packet, protocol::EventId};
+use super::{parser::packet::Packet, protocol::protocol::EventId};
 
 pub type Listener = fn(&Packet, &Node);
-pub type ListenerId = String;
+pub type ListenerId = &'static str;
 pub type Subscription = (ListenerId, Listener);
 
 #[derive(Debug)]
@@ -40,6 +40,7 @@ impl PacketListener {
     }
 
     pub fn subscribe(&mut self, event: EventId, listener_id: ListenerId, listener: Listener) {
+        info!("Subscribing to event: {:?} for {:?}", event, listener_id);
         self.subscriptions
             .lock()
             .unwrap()
@@ -49,6 +50,10 @@ impl PacketListener {
     }
 
     pub fn unsubscribe(&mut self, event: &EventId, listener_id: ListenerId) {
+        info!(
+            "Unsubscribing from event: {:?} for {:?}",
+            event, listener_id
+        );
         self.subscriptions
             .lock()
             .unwrap()
@@ -71,6 +76,13 @@ impl PacketListener {
                 listener(packet, node);
             }
         }
+    }
+
+    pub fn has_subscriptions_for(&self, event: &EventId, listener_id: ListenerId) -> bool {
+        let subscriptions = self.subscriptions.lock().unwrap();
+        subscriptions.get(event).map_or(false, |listeners| {
+            listeners.iter().any(|(id, _)| id == &listener_id)
+        })
     }
 
     pub fn has_subscriptions(&self, event: &EventId) -> bool {
@@ -135,7 +147,7 @@ impl PacketListener {
 
                 let packet_header = PacketHeader::from_vec(&data);
                 if packet_header.is_err() {
-                    // warn!("Failed to parse packet header: {:?}", packet_header);
+                    warn!("Failed to parse packet header: {:?}", packet_header);
                     continue;
                 }
                 let header = packet_header.unwrap();
@@ -166,7 +178,8 @@ impl PacketListener {
                         }
                     },
                     Ok(metadata) => {
-                        // whitelist
+                        buffer.clear(); // TODO: adapt to other ranges
+                        debug!("Parsed metadata: {:?}", metadata.id);
                         if PacketListener::_has_subscriptions(
                             &subscriptions.lock().unwrap(),
                             &metadata.id,
@@ -174,7 +187,6 @@ impl PacketListener {
                             let mut parser = PacketParser::from_metadata(&metadata);
                             match parser.parse(&procol_manager) {
                                 Ok(packet) => {
-                                    debug!("Parsed packet: {:?}", packet);
                                     PacketListener::_notify(
                                         &subscriptions.lock().unwrap(),
                                         &packet,
@@ -218,11 +230,11 @@ mod tests {
 
         assert_eq!(listener.subscriptions.lock().unwrap().len(), 0);
 
-        let listener_id = "test".to_string();
+        let listener_id = "test";
         let listener_fn = |_event: &Packet, _: &Node| {};
         let event = 0;
 
-        listener.subscribe(event.clone(), listener_id.clone(), listener_fn);
+        listener.subscribe(event.clone(), listener_id, listener_fn);
         assert_eq!(listener.subscriptions.lock().unwrap().len(), 1);
         assert_eq!(
             listener
@@ -276,8 +288,8 @@ mod tests {
         };
 
         let mut listener = node.packet_listener.lock().unwrap();
-        let id = "test".to_string();
-        listener.subscribe(1338, id.clone(), listener_fn);
+        let id = "test";
+        listener.subscribe(1338, id, listener_fn);
 
         let res = listener.run_with_capture(cap.into());
         if let Err(err) = res {

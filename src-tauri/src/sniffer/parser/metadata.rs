@@ -1,6 +1,5 @@
 use anyhow::Result;
 use thiserror::Error;
-use tracing::debug;
 
 #[derive(Debug, Clone)]
 pub enum PacketDirection {

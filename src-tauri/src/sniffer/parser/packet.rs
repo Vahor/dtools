@@ -1,9 +1,9 @@
 use indexmap::IndexMap;
 use serde_json::{Map, Number, Value};
 use thiserror::Error;
-use tracing::{debug, info};
+use tracing::debug;
 
-use crate::sniffer::protocol::{
+use crate::sniffer::protocol::protocol::{
     EventId, EventName, ProtocolManager, ProtocolSchema, ProtocolVarType,
 };
 

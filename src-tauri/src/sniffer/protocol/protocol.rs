@@ -1,5 +1,9 @@
 use indexmap::IndexMap;
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display},
+    path::Path,
+};
 use thiserror::Error;
 
 use serde::*;
@@ -12,6 +16,18 @@ pub type FieldName = String;
 pub type EventName = String;
 
 pub type EventId = u16;
+
+#[derive(Debug)]
+pub enum KnownEvent {
+    ChatServerMessage,
+    ChatServerWithObjectMessage,
+}
+
+impl Display for KnownEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        return Debug::fmt(self, f);
+    }
+}
 
 #[derive(Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ProtocolVarType {
@@ -103,7 +119,6 @@ pub struct ProtocolVarTypeVector {
     pub length: ProtocolVarType,
     pub types: ProtocolVarType,
 }
-
 #[derive(Deserialize, Debug)]
 pub struct ProtocolSchema {
     #[serde(deserialize_with = "deserialize_option_number_from_string")]
@@ -181,6 +196,10 @@ impl ProtocolManager {
             return self.get_protocol(id);
         }
         None
+    }
+
+    pub fn get_protocol_id_by_class(&self, class: &EventName) -> Option<&EventId> {
+        self.protocol_id_by_name.get(class)
     }
 }
 
