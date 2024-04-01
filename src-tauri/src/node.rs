@@ -2,10 +2,13 @@ use std::{
     collections::HashMap,
     fs,
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
 };
 
-use crate::{config, downloader};
+use crate::{
+    config::{self, NodeConfig},
+    downloader,
+};
 use crate::{
     features,
     sniffer::{network, protocol},
@@ -21,11 +24,11 @@ use tracing_subscriber::{filter::FromEnvError, prelude::*, EnvFilter};
 #[derive(Debug)]
 pub struct Node {
     pub data_dir: PathBuf,
-    pub config: Arc<config::Manager>,
+    pub config: Arc<config::Manager<NodeConfig>>,
     pub http: reqwest::Client,
     pub downloader: Arc<Mutex<downloader::Downloader>>,
     pub packet_listener: Arc<Mutex<network::PacketListener>>,
-    pub protocol: Arc<protocol::ProtocolManager>,
+    pub protocol: Arc<protocol::protocol::ProtocolManager>,
 
     pub handle: Option<tauri::AppHandle>,
 
@@ -37,7 +40,7 @@ pub struct Node {
 
 #[derive(Debug)]
 pub struct Features {
-    pub chat: Arc<Mutex<features::chat::feature::ChatFeature>>,
+    pub chat: Arc<RwLock<features::chat::feature::ChatFeature>>,
 }
 
 impl Node {
@@ -53,20 +56,20 @@ impl Node {
         let _ = Self::init_logger(data_dir_path)?;
         info!("Data directory: {}", data_dir_path.display());
 
-        let config = config::Manager::new(data_dir_path)
+        let config = config::Manager::new(data_dir_path, "config.json")
             .await
             .map_err(NodeError::FailedToInitializeConfig)?;
 
         let http_client = reqwest::Client::new();
 
-        let protocol = protocol::ProtocolManager::new(data_dir_path)
+        let protocol = protocol::protocol::ProtocolManager::new(data_dir_path)
             .map_err(NodeError::FailedToInitializeProtocol)?;
 
         let packet_listener = network::PacketListener::new();
         let downloader = downloader::Downloader::new();
 
         let features = Features {
-            chat: Arc::new(Mutex::new(features::chat::feature::ChatFeature::new())),
+            chat: Arc::new(RwLock::new(features::chat::feature::ChatFeature::new())),
         };
 
         let node = Arc::new(Node {
@@ -82,12 +85,17 @@ impl Node {
         });
 
         node.packet_listener.lock().unwrap().set_node(node.clone());
-        node.features.chat.lock().unwrap().set_node(node.clone());
+        node.features
+            .chat
+            .write()
+            .unwrap()
+            .set_node(node.clone())
+            .await;
 
         if init {
             node.downloader.lock().unwrap().init(&node).await?;
             node.packet_listener.lock().unwrap().run()?;
-            node.features.chat.lock().unwrap().load_from_config();
+            node.features.chat.write().unwrap().load_from_config();
         }
         info!("Node initialized successfully");
 
@@ -147,7 +155,7 @@ impl Node {
 #[derive(Debug, Error)]
 pub enum NodeError {
     #[error("Failed to initialize ConfigManager")]
-    FailedToInitializeConfig(#[from] config::NodeConfigError),
+    FailedToInitializeConfig(#[from] config::ConfigError),
     #[error("Failed to initialize Downloader")]
     FailedToInitializeDownloader(#[from] downloader::DownloaderError),
     #[error("Failed to initialize logger")]
@@ -155,7 +163,7 @@ pub enum NodeError {
     #[error("Failed to create data directory")]
     FailedToCreateDataDir(#[from] std::io::Error),
     #[error("Failed to initialize ProtocolManager")]
-    FailedToInitializeProtocol(#[from] protocol::ProtocolError),
+    FailedToInitializeProtocol(#[from] protocol::protocol::ProtocolError),
     #[error("Failed to run packet listener")]
     FailedToRunPacketListener(#[from] network::PacketListenerError),
 }

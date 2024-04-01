@@ -39,7 +39,7 @@ indexmap = { workspace = true }
 pcap = {workspace = true}
 
 [workspace.dependencies]
-tauri = { version = "2.0.0-beta", features = ["test", "macos-private-api"] }
+tauri = { version = "2.0.0-beta", features = ["test", "macos-private-api", "unstable"] } # TODO: remove unstable feature (needed for https://github.com/tauri-apps/plugins-workspace/issues/926)
 specta = { git = "https://github.com/Vahor/specta", features = ["functions", "tauri"] } # TODO: use correct git repo when available
 tauri-specta = { git = "https://github.com/Vahor/tauri-specta", branch = "main", features = ["typescript"] } # TODO: use correct git repo when available
 tauri-plugin-fs = "2.0.0-beta"

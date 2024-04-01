@@ -3,11 +3,12 @@
 
 use std::sync::Arc;
 
-use features::chat::config::ChatTabOptions;
 use node::Node;
 use tauri::{Manager, WindowEvent};
 use tauri_specta::ts;
 use tracing::{error, info};
+
+use crate::features::chat::config::ChatEvent;
 
 pub mod config;
 pub mod constants;
@@ -37,9 +38,9 @@ fn fix_specta(path: &str) {
 
 #[tauri::command]
 #[specta::specta]
-fn create_chat_window(state: tauri::State<'_, Arc<Node>>, options: ChatTabOptions) {
+fn create_chat_window(state: tauri::State<'_, Arc<Node>>) {
     // TODO: specta issue, we can't move the function in a separate file
-    let mut chat = state.features.chat.lock().unwrap();
+    let mut chat = state.features.chat.write().unwrap();
     chat.create_window();
     info!("Chat window created");
 }
@@ -50,13 +51,18 @@ fn main() {
     info!("Starting Node...");
 
     // TODO: use plugin when v2 is released
-    let _specta_plugin = {
+    let specta_plugin = {
         let specta_builder = ts::builder()
+            .events(tauri_specta::collect_events![ChatEvent])
             .commands(tauri_specta::collect_commands![
                 app_ready,
                 create_chat_window,
             ])
-            .config(specta::ts::ExportConfig::default().formatter(specta::ts::formatter::prettier));
+            .config(
+                specta::ts::ExportConfig::default()
+                    .bigint(specta::ts::BigIntExportBehavior::BigInt)
+                    .formatter(specta::ts::formatter::prettier),
+            );
 
         let path = "../src/commands.ts";
         #[cfg(debug_assertions)]
@@ -97,7 +103,7 @@ fn main() {
         });
 
     let app = app
-        // .plugin(specta_plugin)
+        .plugin(specta_plugin)
         .plugin(tauri_plugin_shell::init())
         // .plugin(tauri_plugin_store::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())

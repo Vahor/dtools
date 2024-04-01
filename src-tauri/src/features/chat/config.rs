@@ -1,19 +1,23 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 use specta::Type;
 
-use crate::features::windows::WindowOptions;
+use crate::{features::windows::WindowOptions, sniffer::parser::packet::Packet};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ChatConfig {
-    pub views: Vec<ChatTabConfig>,
+pub struct ChatViewsConfig {
+    #[serde(flatten)]
+    pub views: HashMap<String, ChatTabConfig>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ChatTabConfig {
-    #[serde(flatten)]
     pub options: ChatTabOptions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<ChatTabFilterTree>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub window: Option<WindowOptions>,
 }
 
@@ -21,6 +25,38 @@ pub struct ChatTabConfig {
 pub struct ChatTabOptions {
     pub persistent: bool,
     pub notify: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type, tauri_specta::Event)]
+pub struct ChatEvent {
+    pub channel: u8,
+    pub sender_name: String,
+    pub content: String,
+    pub timestamp: u32,
+}
+
+impl ChatEvent {
+    pub fn from_packet(packet: &Packet) -> Self {
+        dbg!(&packet.data);
+        ChatEvent {
+            channel: packet.data.get("channel").unwrap().as_u64().unwrap() as u8,
+            sender_name: packet
+                .data
+                .get("senderName")
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_string(),
+            content: packet
+                .data
+                .get("content")
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_string(),
+            timestamp: packet.data.get("timestamp").unwrap().as_u64().unwrap() as u32,
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -33,6 +69,22 @@ pub enum ChatTabFilterTree {
     Filter(ChatTabFilterType),
 }
 
+impl ChatTabFilterTree {
+    pub fn evaluate(&self, data: &ChatEvent) -> bool {
+        match self {
+            ChatTabFilterTree::And(filters) => filters.iter().all(|filter| filter.evaluate(data)),
+            ChatTabFilterTree::Or(filters) => filters.iter().any(|filter| filter.evaluate(data)),
+            ChatTabFilterTree::Filter(filter) => match filter {
+                ChatTabFilterType::Channel(channel) => data.channel == *channel,
+                ChatTabFilterType::Player(player) => data.sender_name == *player,
+                ChatTabFilterType::Word(word) => data.content.contains(word),
+                // ChatTabFilterType::Item(item) => data.objects.as_ref().unwrap().contains_key(item),
+                _ => false,
+            },
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "camelCase")]
@@ -40,11 +92,14 @@ pub enum ChatTabFilterType {
     Channel(u8),
     Player(String),
     Word(String),
+    Item(u32),
 }
 
-impl Default for ChatConfig {
+impl Default for ChatViewsConfig {
     fn default() -> Self {
-        ChatConfig { views: Vec::new() }
+        ChatViewsConfig {
+            views: HashMap::new(),
+        }
     }
 }
 
@@ -73,82 +128,93 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let config = ChatConfig::default();
+        let config = ChatViewsConfig::default();
         assert_eq!(config.views.len(), 0);
     }
 
     #[test]
     fn test_deserialize() {
-        let config = r#"{"tabs":[]}"#;
-        let config: ChatConfig = serde_json::from_str(config).unwrap();
+        let config = r#"{}"#;
+        let config: ChatViewsConfig = serde_json::from_str(config).unwrap();
         assert_eq!(config.views.len(), 0);
     }
 
     #[test]
     fn test_serialize() {
-        let config = ChatConfig::default();
+        let config = ChatViewsConfig::default();
         let config = serde_json::to_string(&config).unwrap();
-        assert_eq!(config, r#"{"tabs":[]}"#);
+        assert_eq!(config, r#"{}"#);
 
-        let config = ChatConfig {
-            views: vec![ChatTabConfig {
-                window: None,
-                options: ChatTabOptions {
-                    persistent: true,
-                    notify: true,
+        let config = ChatViewsConfig {
+            views: HashMap::from([(
+                "test".to_string(),
+                ChatTabConfig {
+                    window: None,
+                    options: ChatTabOptions {
+                        persistent: true,
+                        notify: true,
+                    },
+                    filters: Some(ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1))),
                 },
-                filters: Some(ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1))),
-            }],
+            )]),
         };
 
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"tabs":[{"persistent":true,"notify":true,"filters":{"type":"channel","value":1}}]}"#
+            r#"{"test":{"persistent":true,"notify":true,"filters":{"type":"channel","value":1}}}"#
         );
 
-        let config = ChatConfig {
-            views: vec![ChatTabConfig {
-                window: None,
-                options: ChatTabOptions {
-                    persistent: true,
-                    notify: true,
-                },
-                filters: Some(ChatTabFilterTree::And(vec![
-                    ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
-                    ChatTabFilterTree::Filter(ChatTabFilterType::Player("player".to_string())),
-                ])),
-            }],
-        };
-
-        let config = serde_json::to_string(&config).unwrap();
-        assert_eq!(
-            config,
-            r#"{"tabs":[{"persistent":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]}}]}"#
-        );
-
-        let config = ChatConfig {
-            views: vec![ChatTabConfig {
-                window: None,
-                options: ChatTabOptions {
-                    persistent: true,
-                    notify: true,
-                },
-                filters: Some(ChatTabFilterTree::Or(vec![
-                    ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
-                    ChatTabFilterTree::And(vec![
+        let config = ChatViewsConfig {
+            views: HashMap::from([(
+                "test2".to_string(),
+                ChatTabConfig {
+                    window: None,
+                    options: ChatTabOptions {
+                        persistent: true,
+                        notify: true,
+                    },
+                    filters: Some(ChatTabFilterTree::And(vec![
+                        ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
                         ChatTabFilterTree::Filter(ChatTabFilterType::Player("player".to_string())),
-                        ChatTabFilterTree::Filter(ChatTabFilterType::Word("word".to_string())),
-                    ]),
-                ])),
-            }],
+                    ])),
+                },
+            )]),
+        };
+
+        let config = serde_json::to_string(&config).unwrap();
+        assert_eq!(
+            config,
+            r#"{"test2":{"persistent":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]}}}"#
+        );
+
+        let config = ChatViewsConfig {
+            views: HashMap::from([(
+                "test3".to_string(),
+                ChatTabConfig {
+                    window: None,
+                    options: ChatTabOptions {
+                        persistent: true,
+                        notify: true,
+                    },
+                    filters: Some(ChatTabFilterTree::Or(vec![
+                        ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
+                        ChatTabFilterTree::And(vec![
+                            ChatTabFilterTree::Filter(ChatTabFilterType::Player(
+                                "player".to_string(),
+                            )),
+                            ChatTabFilterTree::Filter(ChatTabFilterType::Word("word".to_string())),
+                        ]),
+                    ])),
+                },
+            )]),
         };
 
         // println!("{}", serde_json::to_string_pretty(&config).unwrap());
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"tabs":[{"persistent":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]}}]}"#
+            r#"{"test3":{"persistent":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]}}}"#
         );
     }
 }
