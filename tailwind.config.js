@@ -25,8 +25,17 @@ export default {
       },
     },
     colors: {
+      "transparent": "transparent",
       "static-black": "var(--static-static-black)",
       "static-white": "var(--static-static-white)",
+
+      "white": "var(--static-static-white)",
+      "black": "var(--static-static-black)",
+
+      "faded-dark": "var(--state-faded-dark)",
+      "faded-base": "var(--state-faded-base)",
+      "faded-light": "var(--state-faded-light)",
+      "faded-lighter": "var(--state-faded-lighter)",
 
       "information-dark": "var(--state-information-dark)",
       "information-base": "var(--state-information-base)",
@@ -76,6 +85,10 @@ export default {
       "primary-darker": "var(--primary-darker)",
       "primary-dark": "var(--primary-dark)",
       "primary-base": "var(--primary-base)",
+
+      "primary-alpha-10": "var(--primary-alpha-10)",
+      "primary-alpha-16": "var(--primary-alpha-16)",
+      "primary-alpha-24": "var(--primary-alpha-24)",
     },
     extend: {
       backgroundColor: {
@@ -91,7 +104,7 @@ export default {
         "sub": "var(--text-sub-600)",
         "soft": "var(--text-soft-400)",
         "disabled": "var(--text-disabled-300)",
-        "white": "var(--text-white-0)",
+        "white": "var(--text-white-0)"
       },
       borderColor: {
         "strong": "var(--stroke-strong-950)",

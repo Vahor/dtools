@@ -14,9 +14,10 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
-import { Route as DashboardLayoutIndexImport } from './routes/dashboard/_layout/index'
 import { Route as FeatureschatChatImport } from './routes/features/(chat)/chat'
 import { Route as DashboardLayoutSettingsImport } from './routes/dashboard/_layout/settings'
+import { Route as DashboardLayoutHomeImport } from './routes/dashboard/_layout/home'
+import { Route as DashboardLayoutChatImport } from './routes/dashboard/_layout/chat'
 
 // Create Virtual Routes
 
@@ -34,11 +35,6 @@ const DashboardLayoutRoute = DashboardLayoutImport.update({
   getParentRoute: () => DashboardRoute,
 } as any)
 
-const DashboardLayoutIndexRoute = DashboardLayoutIndexImport.update({
-  path: '/',
-  getParentRoute: () => DashboardLayoutRoute,
-} as any)
-
 const FeatureschatChatRoute = FeatureschatChatImport.update({
   path: '/features/chat',
   getParentRoute: () => rootRoute,
@@ -46,6 +42,16 @@ const FeatureschatChatRoute = FeatureschatChatImport.update({
 
 const DashboardLayoutSettingsRoute = DashboardLayoutSettingsImport.update({
   path: '/settings',
+  getParentRoute: () => DashboardLayoutRoute,
+} as any)
+
+const DashboardLayoutHomeRoute = DashboardLayoutHomeImport.update({
+  path: '/home',
+  getParentRoute: () => DashboardLayoutRoute,
+} as any)
+
+const DashboardLayoutChatRoute = DashboardLayoutChatImport.update({
+  path: '/chat',
   getParentRoute: () => DashboardLayoutRoute,
 } as any)
 
@@ -61,6 +67,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/_layout/chat': {
+      preLoaderRoute: typeof DashboardLayoutChatImport
+      parentRoute: typeof DashboardLayoutImport
+    }
+    '/dashboard/_layout/home': {
+      preLoaderRoute: typeof DashboardLayoutHomeImport
+      parentRoute: typeof DashboardLayoutImport
+    }
     '/dashboard/_layout/settings': {
       preLoaderRoute: typeof DashboardLayoutSettingsImport
       parentRoute: typeof DashboardLayoutImport
@@ -68,10 +82,6 @@ declare module '@tanstack/react-router' {
     '/features/(chat)/chat': {
       preLoaderRoute: typeof FeatureschatChatImport
       parentRoute: typeof rootRoute
-    }
-    '/dashboard/_layout/': {
-      preLoaderRoute: typeof DashboardLayoutIndexImport
-      parentRoute: typeof DashboardLayoutImport
     }
   }
 }
@@ -81,8 +91,9 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   DashboardRoute.addChildren([
     DashboardLayoutRoute.addChildren([
+      DashboardLayoutChatRoute,
+      DashboardLayoutHomeRoute,
       DashboardLayoutSettingsRoute,
-      DashboardLayoutIndexRoute,
     ]),
   ]),
   FeatureschatChatRoute,

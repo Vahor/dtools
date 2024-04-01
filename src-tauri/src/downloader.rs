@@ -26,8 +26,12 @@ impl Downloader {
             Some(ref version) => {
                 let need_update = {
                     let current_version = &node.config.config.read().unwrap().game_version;
+                    let check_for_updates = &current_version.check_for_updates;
+                    let current_version = &current_version.version;
                     info!("Current version: {}", &current_version);
-                    current_version != version
+                    let check_for_updates = *check_for_updates || current_version.len() == 0;
+                    info!("Check for updates: {}", check_for_updates);
+                    check_for_updates && current_version != version
                 };
                 info!("Latest version: {}", &version);
 
@@ -41,7 +45,7 @@ impl Downloader {
 
                     node.config
                         .update_config(|config| {
-                            config.game_version = version;
+                            config.game_version.version = version;
                         })
                         .await?;
                     debug!("Config updated successfully");

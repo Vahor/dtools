@@ -21,6 +21,12 @@ export const commands = {
       config,
     });
   },
+  async getGlobalConfig(): Promise<NodeConfig> {
+    return await TAURI_INVOKE("get_global_config");
+  },
+  async getLastPacketTimestamp(): Promise<bigint> {
+    return await TAURI_INVOKE("get_last_packet_timestamp");
+  },
 };
 
 export const events = __makeEvents__<{
@@ -52,6 +58,9 @@ export type ChatTabFilterType =
   | { type: "word"; value: string }
   | { type: "item"; value: number };
 export type ChatTabOptions = { persistent: boolean; notify: boolean };
+export type NetworkConfig = { port: number; interface: string };
+export type NodeConfig = { network: NetworkConfig; game_version: Version };
+export type Version = { version: string; checkForUpdates: boolean };
 export type WindowOptions = { type: WindowType };
 export type WindowType = { type: "tab"; value: string } | { type: "window" };
 

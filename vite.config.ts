@@ -23,7 +23,9 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
-  alias: {
-    "@": path.resolve(__dirname, "./src"),
-  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  }
 }));

@@ -38,7 +38,8 @@
         "transparent": true,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
-        "url": "dashboard"
+        "alwaysOnTop": true,
+        "url": "dashboard/home"
       }
     ]
   }

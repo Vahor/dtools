@@ -6,7 +6,7 @@ use std::sync::Arc;
 use node::Node;
 use tauri::{Manager, WindowEvent};
 use tauri_specta::ts;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use crate::features::chat::config::ChatEvent;
 
@@ -66,6 +66,22 @@ fn update_chat_window_config(
     chat.update_window_config(&window_id, config);
 }
 
+#[tauri::command]
+#[specta::specta]
+fn get_global_config(state: tauri::State<'_, Arc<Node>>) -> config::NodeConfig {
+    let config = state.config.config.read().unwrap();
+    debug!("Config: {:?}", *config);
+    config.clone()
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_last_packet_timestamp(state: tauri::State<'_, Arc<Node>>) -> u128 {
+    let packet_listener = state.packet_listener.lock().unwrap();
+    let last_packet_time = packet_listener.last_packet_time.read().unwrap();
+    last_packet_time.clone()
+}
+
 fn main() {
     let app = tauri::Builder::default();
 
@@ -79,7 +95,9 @@ fn main() {
                 app_ready,
                 create_chat_window,
                 get_chat_window_config,
-                update_chat_window_config
+                update_chat_window_config,
+                get_global_config,
+                get_last_packet_timestamp
             ])
             .config(
                 specta::ts::ExportConfig::default()
@@ -136,7 +154,9 @@ fn main() {
             app_ready,
             create_chat_window,
             get_chat_window_config,
-            update_chat_window_config
+            update_chat_window_config,
+            get_global_config,
+            get_last_packet_timestamp
         ]);
 
     app.run(tauri::generate_context!())

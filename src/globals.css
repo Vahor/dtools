@@ -6,42 +6,42 @@
   :root {
     --radius: 0.6rem;
 
-    --alpha-black-alpha-10: rgb(14, 18, 27 / 0.1);
-    --alpha-black-alpha-16: rgb(14, 18, 27 / 0.16);
-    --alpha-black-alpha-24: rgb(14, 18, 27 / 0.24);
-    --alpha-blue-alpha-10: rgb(71, 108, 255 / 0.1);
-    --alpha-blue-alpha-16: rgb(71, 108, 255 / 0.16);
-    --alpha-blue-alpha-24: rgb(71, 108, 255 / 0.24);
-    --alpha-green-alpha-10: rgb(31, 193, 107 / 0.1);
-    --alpha-green-alpha-16: rgb(31, 193, 107 / 0.16);
-    --alpha-green-alpha-24: rgb(31, 193, 107 / 0.24);
-    --alpha-neutral-alpha-10: rgb(153, 160, 174 / 0.1);
-    --alpha-neutral-alpha-16: rgb(153, 160, 174 / 0.16);
-    --alpha-neutral-alpha-24: rgb(153, 160, 174 / 0.24);
-    --alpha-orange-alpha-10: rgb(255, 145, 71 / 0.1);
-    --alpha-orange-alpha-16: rgb(255, 145, 71 / 0.16);
-    --alpha-orange-alpha-24: rgb(255, 145, 71 / 0.24);
-    --alpha-pink-alpha-10: rgb(251, 75, 163 / 0.1);
-    --alpha-pink-alpha-16: rgb(251, 75, 163 / 0.16);
-    --alpha-pink-alpha-24: rgb(251, 75, 163 / 0.24);
-    --alpha-purple-alpha-10: rgb(120, 77, 239 / 0.1);
-    --alpha-purple-alpha-16: rgb(120, 77, 239 / 0.16);
-    --alpha-purple-alpha-24: rgb(120, 77, 239 / 0.24);
-    --alpha-red-alpha-10: rgb(251, 55, 72 / 0.1);
-    --alpha-red-alpha-16: rgb(251, 55, 72 / 0.16);
-    --alpha-red-alpha-24: rgb(251, 55, 72 / 0.24);
-    --alpha-sky-alpha-10: rgb(71, 194, 255 / 0.1);
-    --alpha-sky-alpha-16: rgb(71, 194, 255 / 0.16);
-    --alpha-sky-alpha-24: rgb(71, 194, 255 / 0.24);
-    --alpha-teal-alpha-10: rgb(34, 211, 187 / 0.1);
-    --alpha-teal-alpha-16: rgb(34, 211, 187 / 0.16);
-    --alpha-teal-alpha-24: rgb(34, 211, 187 / 0.24);
-    --alpha-white-alpha-10: rgb(255, 255, 255 / 0.1);
-    --alpha-white-alpha-16: rgb(255, 255, 255 / 0.16);
-    --alpha-white-alpha-24: rgb(255, 255, 255 / 0.24);
-    --alpha-yellow-alpha-10: rgb(251, 198, 75 / 0.1);
-    --alpha-yellow-alpha-16: rgb(251, 198, 75 / 0.16);
-    --alpha-yellow-alpha-24: rgb(251, 198, 75 / 0.24);
+    --alpha-black-alpha-10: rgba(14, 18, 27, 0.1);
+    --alpha-black-alpha-16: rgba(14, 18, 27, 0.16);
+    --alpha-black-alpha-24: rgba(14, 18, 27, 0.24);
+    --alpha-blue-alpha-10: rgba(71, 108, 255, 0.1);
+    --alpha-blue-alpha-16: rgba(71, 108, 255, 0.16);
+    --alpha-blue-alpha-24: rgba(71, 108, 255, 0.24);
+    --alpha-green-alpha-10: rgb(31, 193, 107, 0.1);
+    --alpha-green-alpha-16: rgba(31, 193, 107, 0.16);
+    --alpha-green-alpha-24: rgba(31, 193, 107, 0.24);
+    --alpha-neutral-alpha-10: rgba(153, 160, 174, 0.1);
+    --alpha-neutral-alpha-16: rgba(153, 160, 174, 0.16);
+    --alpha-neutral-alpha-24: rgba(153, 160, 174, 0.24);
+    --alpha-orange-alpha-10: rgba(255, 145, 71, 0.1);
+    --alpha-orange-alpha-16: rgba(255, 145, 71, 0.16);
+    --alpha-orange-alpha-24: rgba(255, 145, 71, 0.24);
+    --alpha-pink-alpha-10: rgba(251, 75, 163, 0.1);
+    --alpha-pink-alpha-16: rgba(251, 75, 163, 0.16);
+    --alpha-pink-alpha-24: rgba(251, 75, 163, 0.24);
+    --alpha-purple-alpha-10: rgba(120, 77, 239, 0.1);
+    --alpha-purple-alpha-16: rgba(120, 77, 239, 0.16);
+    --alpha-purple-alpha-24: rgba(120, 77, 239, 0.24);
+    --alpha-red-alpha-10: rgba(251, 55, 72, 0.1);
+    --alpha-red-alpha-16: rgba(251, 55, 72, 0.16);
+    --alpha-red-alpha-24: rgba(251, 55, 72, 0.24);
+    --alpha-sky-alpha-10: rgba(71, 194, 255, 0.1);
+    --alpha-sky-alpha-16: rgba(71, 194, 255, 0.16);
+    --alpha-sky-alpha-24: rgba(71, 194, 255, 0.24);
+    --alpha-teal-alpha-10: rgba(34, 211, 187, 0.1);
+    --alpha-teal-alpha-16: rgba(34, 211, 187, 0.16);
+    --alpha-teal-alpha-24: rgba(34, 211, 187, 0.24);
+    --alpha-white-alpha-10: rgba(255, 255, 255, 0.1);
+    --alpha-white-alpha-16: rgba(255, 255, 255, 0.16);
+    --alpha-white-alpha-24: rgba(255, 255, 255, 0.24);
+    --alpha-yellow-alpha-10: rgba(251, 198, 75, 0.1);
+    --alpha-yellow-alpha-16: rgba(251, 198, 75, 0.16);
+    --alpha-yellow-alpha-24: rgba(251, 198, 75, 0.24);
     --blue-100: rgb(213, 226, 255);
     --blue-200: rgb(192, 213, 255);
     --blue-300: rgb(151, 186, 255);
@@ -253,13 +253,6 @@
     --illustration-weak-100: var(--neutral-900);
     --illustration-white-0: var(--neutral-950);
     --overlay-overlay: rgb(82, 88, 102 / 0.32);
-    --social-amazon: rgb(255, 255, 255);
-    --social-apple: rgb(255, 255, 255);
-    --social-github: rgb(255, 255, 255);
-    --social-notion: rgb(255, 255, 255);
-    --social-tidal: rgb(255, 255, 255);
-    --social-twitter: rgb(255, 255, 255);
-    --social-zendesk: rgb(255, 255, 255);
     --state-away-base: var(--yellow-600);
     --state-away-dark: var(--yellow-400);
     --state-away-light: var(--alpha-yellow-alpha-24);
@@ -390,6 +383,14 @@
   .z-1 {
     z-index: 1;
   }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 body.lock-scroll {

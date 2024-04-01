@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::RwLock, time::SystemTime};
 
 use core::fmt::Debug;
 use pcap::{Activated, Capture};
@@ -25,6 +25,7 @@ pub type Subscription = (ListenerId, Listener);
 pub struct PacketListener {
     subscriptions: Arc<Mutex<HashMap<EventId, Vec<Subscription>>>>,
     node: Option<Arc<Node>>,
+    pub last_packet_time: Arc<RwLock<u128>>,
 }
 
 impl PacketListener {
@@ -32,6 +33,7 @@ impl PacketListener {
         return PacketListener {
             subscriptions: Arc::new(Mutex::new(HashMap::new())),
             node: None,
+            last_packet_time: Arc::new(RwLock::new(0)),
         };
     }
 
@@ -137,6 +139,7 @@ impl PacketListener {
         let subscriptions = self.subscriptions.clone();
         let procol_manager = self.node.as_ref().unwrap().protocol.clone();
         let node = self.node.clone().unwrap();
+        let last_packet_time = self.last_packet_time.clone();
 
         tauri::async_runtime::spawn(async move {
             let buffer = &mut DataWrapper::new(Vec::new());
@@ -144,6 +147,12 @@ impl PacketListener {
 
             while let Ok(packet) = cap.next_packet() {
                 let data = packet.data.to_vec();
+                let now = SystemTime::now();
+
+                *last_packet_time.write().unwrap() = now
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis();
 
                 let packet_header = PacketHeader::from_vec(&data);
                 if packet_header.is_err() {

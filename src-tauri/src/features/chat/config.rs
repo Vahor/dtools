@@ -5,7 +5,7 @@ use specta::Type;
 
 use crate::{features::windows::WindowOptions, sniffer::parser::packet::Packet};
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct ChatViewsConfig {
     #[serde(flatten)]
     pub views: HashMap<String, ChatTabConfig>,
