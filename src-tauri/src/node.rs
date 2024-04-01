@@ -142,10 +142,6 @@ impl Node {
 
         return Ok(guard);
     }
-
-    pub fn greet(&self, name: &str) -> String {
-        return format!("Hello, {}!", name);
-    }
 }
 
 #[derive(Debug, Error)]

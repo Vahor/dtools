@@ -16,12 +16,6 @@ pub mod features;
 pub mod node;
 pub mod sniffer;
 
-#[tauri::command]
-#[specta::specta]
-fn greet(state: tauri::State<'_, Arc<Node>>, name: &str) -> String {
-    state.greet(name)
-}
-
 #[tauri::command(async)]
 #[specta::specta]
 async fn app_ready(handle: tauri::AppHandle) {
@@ -59,13 +53,12 @@ fn main() {
     let _specta_plugin = {
         let specta_builder = ts::builder()
             .commands(tauri_specta::collect_commands![
-                greet,
                 app_ready,
                 create_chat_window,
             ])
             .config(specta::ts::ExportConfig::default().formatter(specta::ts::formatter::prettier));
 
-        let path = "../src-ui/commands.ts";
+        let path = "../src/commands.ts";
         #[cfg(debug_assertions)]
         let specta_builder = specta_builder.path(path);
 
@@ -110,11 +103,7 @@ fn main() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_fs::init())
         // TODO: use tauri-specta when v2 is released
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            app_ready,
-            create_chat_window
-        ]);
+        .invoke_handler(tauri::generate_handler![app_ready, create_chat_window]);
 
     app.run(tauri::generate_context!())
         .expect("error while running tauri application");
