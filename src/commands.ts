@@ -4,22 +4,27 @@ export const commands = {
   async appReady(): Promise<void> {
     return await TAURI_INVOKE("app_ready");
   },
-  async createChatWindow(): Promise<void> {
-    return await TAURI_INVOKE("create_chat_window");
-  },
-  async getChatWindowConfig(windowId: string): Promise<ChatTabConfig | null> {
-    return await TAURI_INVOKE("get_chat_window_config", {
-      windowId,
+  async createChatTab(config: ChatTabConfig): Promise<void> {
+    return await TAURI_INVOKE("create_chat_tab", {
+      config,
     });
   },
-  async updateChatWindowConfig(
+  async updateChatTabConfig(
     windowId: string,
     config: ChatTabConfig,
   ): Promise<void> {
-    return await TAURI_INVOKE("update_chat_window_config", {
+    return await TAURI_INVOKE("update_chat_tab_config", {
       windowId,
       config,
     });
+  },
+  async getChatTabConfig(windowId: string): Promise<ChatTabConfig | null> {
+    return await TAURI_INVOKE("get_chat_tab_config", {
+      windowId,
+    });
+  },
+  async listChatTabs(): Promise<{ [key in string]: ChatTabConfig }> {
+    return await TAURI_INVOKE("list_chat_tabs");
   },
   async getGlobalConfig(): Promise<NodeConfig> {
     return await TAURI_INVOKE("get_global_config");
@@ -44,9 +49,10 @@ export type ChatEvent = {
   timestamp: number;
 };
 export type ChatTabConfig = {
+  name: string;
   options: ChatTabOptions;
   filters?: ChatTabFilterTree | null;
-  window?: WindowOptions | null;
+  order: number;
 };
 export type ChatTabFilterTree =
   | { and: ChatTabFilterTree[] }
@@ -61,8 +67,6 @@ export type ChatTabOptions = { persistent: boolean; notify: boolean };
 export type NetworkConfig = { port: number; interface: string };
 export type NodeConfig = { network: NetworkConfig; game_version: Version };
 export type Version = { version: string; checkForUpdates: boolean };
-export type WindowOptions = { type: WindowType };
-export type WindowType = { type: "tab"; value: string } | { type: "window" };
 
 /** tauri-specta globals **/
 

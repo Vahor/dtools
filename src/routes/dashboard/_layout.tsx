@@ -1,6 +1,5 @@
 
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router"
-import { commands } from "../../commands"
+import { Outlet, createFileRoute } from "@tanstack/react-router"
 import { Sidebar } from "@/components/sidebar"
 
 export const Route = createFileRoute('/dashboard/_layout')({
@@ -11,12 +10,7 @@ function DashboardLayout() {
   return (
     <>
       <Sidebar />
-      <main className="pl-2">
-        <Link to="/dashboard/settings">Settings</Link>
-        <Link to="/dashboard">Dashboard</Link>
-        <button onClick={() => commands.createChatWindow()}>
-          popup
-        </button>
+      <main className="bg-soft w-full flex">
         <Outlet />
       </main>
     </>

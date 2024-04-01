@@ -38,32 +38,50 @@ fn fix_specta(path: &str) {
 
 #[tauri::command]
 #[specta::specta]
-fn create_chat_window(state: tauri::State<'_, Arc<Node>>) {
+fn create_chat_tab(
+    state: tauri::State<'_, Arc<Node>>,
+    config: features::chat::config::ChatTabConfig,
+) {
     // TODO: specta issue, we can't move the function in a separate file
     let mut chat = state.features.chat.write().unwrap();
-    chat.create_window();
-    info!("Chat window created");
+    chat.create_tab(config);
 }
 
 #[tauri::command]
 #[specta::specta]
-fn get_chat_window_config(
+fn delete_chat_tab(state: tauri::State<'_, Arc<Node>>, window_id: String) {
+    let mut chat = state.features.chat.write().unwrap();
+    chat.delete_tab(&window_id);
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_chat_tab_config(
     state: tauri::State<'_, Arc<Node>>,
     window_id: String,
 ) -> Option<features::chat::config::ChatTabConfig> {
     let chat = state.features.chat.read().unwrap();
-    chat.get_window_config(&window_id)
+    chat.get_tab_config(&window_id)
 }
 
 #[tauri::command]
 #[specta::specta]
-fn update_chat_window_config(
+fn update_chat_tab_config(
     state: tauri::State<'_, Arc<Node>>,
     window_id: String,
     config: features::chat::config::ChatTabConfig,
 ) {
     let chat = state.features.chat.write().unwrap();
-    chat.update_window_config(&window_id, config);
+    chat.update_tab_config(&window_id, config);
+}
+
+#[tauri::command]
+#[specta::specta]
+fn list_chat_tabs(
+    state: tauri::State<'_, Arc<Node>>,
+) -> std::collections::HashMap<String, features::chat::config::ChatTabConfig> {
+    let chat = state.features.chat.read().unwrap();
+    chat.list_tabs()
 }
 
 #[tauri::command]
@@ -93,9 +111,10 @@ fn main() {
             .events(tauri_specta::collect_events![ChatEvent])
             .commands(tauri_specta::collect_commands![
                 app_ready,
-                create_chat_window,
-                get_chat_window_config,
-                update_chat_window_config,
+                create_chat_tab,
+                update_chat_tab_config,
+                get_chat_tab_config,
+                list_chat_tabs,
                 get_global_config,
                 get_last_packet_timestamp
             ])
@@ -152,9 +171,10 @@ fn main() {
         // TODO: use tauri-specta when v2 is released
         .invoke_handler(tauri::generate_handler![
             app_ready,
-            create_chat_window,
-            get_chat_window_config,
-            update_chat_window_config,
+            create_chat_tab,
+            update_chat_tab_config,
+            get_chat_tab_config,
+            list_chat_tabs,
             get_global_config,
             get_last_packet_timestamp
         ]);

@@ -1,9 +1,9 @@
+import { ChatEvent } from '@/commands';
 import { createFileRoute } from '@tanstack/react-router'
 import { getCurrent } from '@tauri-apps/api/webviewWindow';
 import { useEffect, useRef, useState } from 'react';
-import { ChatEvent, events } from '../../../commands.ts';
 
-export const Route = createFileRoute('/features/(chat)/chat')({
+export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$chat_id')({
   component: ChatComponent,
 })
 
@@ -19,9 +19,9 @@ function ChatComponent() {
     const window = getCurrent();
 
     console.log('Chat component loaded', window)
-    events.chatEvent(window).listen((event) => {
-      setChatMessages((prev) => [...prev, event.payload])
-    })
+    // events.chatEvent(window).listen((event) => {
+    //   setChatMessages((prev) => [...prev, event.payload])
+    // })
   }, [])
 
   return (

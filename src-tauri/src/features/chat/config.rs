@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 
-use crate::{features::windows::WindowOptions, sniffer::parser::packet::Packet};
+use crate::sniffer::parser::packet::Packet;
 
 #[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct ChatViewsConfig {
@@ -13,11 +13,11 @@ pub struct ChatViewsConfig {
 
 #[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct ChatTabConfig {
+    pub name: String,
     pub options: ChatTabOptions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<ChatTabFilterTree>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub window: Option<WindowOptions>,
+    pub order: u8,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, Type)]
@@ -110,16 +110,6 @@ impl Default for ChatTabOptions {
     }
 }
 
-impl Default for ChatTabConfig {
-    fn default() -> Self {
-        ChatTabConfig {
-            options: ChatTabOptions::default(),
-            filters: None,
-            window: None,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,7 +137,8 @@ mod tests {
             views: HashMap::from([(
                 "test".to_string(),
                 ChatTabConfig {
-                    window: None,
+                    name: "test".to_string(),
+                    order: 0,
                     options: ChatTabOptions {
                         persistent: true,
                         notify: true,
@@ -160,14 +151,15 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test":{"persistent":true,"notify":true,"filters":{"type":"channel","value":1}}}"#
+            r#"{"test":{"persistent":true,"notify":true,"filters":{"type":"channel","value":1},"order":0}}"#
         );
 
         let config = ChatViewsConfig {
             views: HashMap::from([(
                 "test2".to_string(),
                 ChatTabConfig {
-                    window: None,
+                    name: "test2".to_string(),
+                    order: 0,
                     options: ChatTabOptions {
                         persistent: true,
                         notify: true,
@@ -183,14 +175,15 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test2":{"persistent":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]}}}"#
+            r#"{"test2":{"persistent":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]},"order":0}}"#
         );
 
         let config = ChatViewsConfig {
             views: HashMap::from([(
                 "test3".to_string(),
                 ChatTabConfig {
-                    window: None,
+                    name: "test3".to_string(),
+                    order: 0,
                     options: ChatTabOptions {
                         persistent: true,
                         notify: true,
@@ -212,7 +205,7 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test3":{"persistent":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]}}}"#
+            r#"{"test3":{"persistent":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]},"order":0}}"#
         );
     }
 }
