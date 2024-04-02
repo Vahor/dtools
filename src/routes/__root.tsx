@@ -16,7 +16,7 @@ function App() {
   }, []);
 
   return (
-    <div className='flex h-screen cursor-default select-none overflow-hidden rounded-md'>
+    <div className='flex h-screen cursor-default select-none overflow-hidden'>
       <TitleBar />
       <div className='relative flex w-full h-full overflow-hidden'>
         <Outlet />

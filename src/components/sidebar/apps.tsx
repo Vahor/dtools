@@ -1,11 +1,11 @@
 import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { GripIcon, MailIcon } from "lucide-react";
+import { GripIcon, MessageCircleIcon } from "lucide-react";
 import { ButtonTooltip } from "../ui/button-tooltip";
 import { Link } from "@tanstack/react-router";
 
 const links = [
   { name: "Accueil", icon: GripIcon, path: "/dashboard/home" },
-  { name: "Chat", icon: MailIcon, path: "/dashboard/chat" },
+  { name: "Chat", icon: MessageCircleIcon, path: "/dashboard/chat" },
 ] as const;
 type Link = typeof links[number];
 
@@ -24,7 +24,7 @@ const AppLink = ({ name, icon, path }: Link) => {
   return (
     <ButtonTooltip tooltip={name} side="right" size="sm" asChild>
       <Link to={path}>
-        <Icon className="size-5" />
+        <Icon className="size-5" fill="currentColor" />
       </Link>
     </ButtonTooltip>
   );

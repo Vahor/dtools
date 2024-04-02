@@ -73,9 +73,9 @@
     --neutral-500: rgb(113, 119, 132);
     --neutral-600: rgb(82, 88, 102);
     --neutral-700: rgb(43, 48, 59);
-    --neutral-800: rgb(34, 37, 48);
-    --neutral-900: rgb(24, 27, 37);
-    --neutral-950: rgb(14, 18, 27);
+    --neutral-800: rgb(34, 35, 42);
+    --neutral-900: rgb(20, 20, 25);
+    --neutral-950: rgb(15, 15, 20);
     --orange-100: rgb(255, 227, 213);
     --orange-200: rgb(255, 213, 192);
     --orange-300: rgb(255, 186, 151);
@@ -365,7 +365,7 @@
   }
 
   body {
-    @apply text-strong flex min-h-full flex-col antialiased;
+    @apply text-strong flex min-h-full flex-col antialiased bg-white overflow-hidden;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;

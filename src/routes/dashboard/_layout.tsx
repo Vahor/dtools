@@ -10,7 +10,7 @@ function DashboardLayout() {
   return (
     <>
       <Sidebar />
-      <main className="bg-soft w-full flex">
+      <main className="bg-[var(--neutral-800)] w-full flex">
         <Outlet />
       </main>
     </>
