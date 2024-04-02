@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use tracing::debug;
 
 use crate::sniffer::parser::packet::Packet;
 

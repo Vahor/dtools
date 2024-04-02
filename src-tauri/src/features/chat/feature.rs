@@ -13,7 +13,6 @@ use crate::{
 };
 use tauri_plugin_notification::NotificationExt;
 use tauri_specta::Event;
-use tracing::debug;
 use uuid::Uuid;
 
 use super::config::ChatViewsConfig;

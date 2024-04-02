@@ -1,3 +1,4 @@
+use thiserror::Error;
 use tracing::debug;
 
 #[derive(Debug, Clone)]
@@ -113,28 +114,28 @@ impl DataWrapper {
         value
     }
 
-    pub fn read_var_short(&mut self) -> u16 {
+    pub fn read_var_short(&mut self) -> Result<u16, ParseError> {
         let mut value = 0;
         for i in (0..16).step_by(7) {
             let byte = self.read_byte();
             value += ((byte & 0x7f) as u16) << i;
             if byte & 0x80 == 0 {
-                return value;
+                return Ok(value);
             }
         }
-        panic!("Too much data");
+        return Err(ParseError::TooMuchData);
     }
 
-    pub fn read_var_long(&mut self) -> u64 {
+    pub fn read_var_long(&mut self) -> Result<u64, ParseError> {
         let mut value = 0;
         for i in (0..64).step_by(7) {
             let byte = self.read_byte();
             value |= ((byte & 0x7f) as u64) << i;
             if byte & 0x80 == 0 {
-                return value;
+                return Ok(value);
             }
         }
-        panic!("Too much data");
+        return Err(ParseError::TooMuchData);
     }
 
     pub fn read_utf(&mut self) -> String {
@@ -158,4 +159,10 @@ impl DataWrapper {
         self.pos += 8;
         value
     }
+}
+
+#[derive(Debug, Error)]
+pub enum ParseError {
+    #[error("Too much data")]
+    TooMuchData,
 }

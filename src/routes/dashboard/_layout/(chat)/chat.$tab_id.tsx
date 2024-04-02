@@ -31,7 +31,7 @@ function ChatComponent() {
 
 
   return (
-    <div className='flex flex-col  w-full select-auto' >
+    <div className='flex flex-col w-full select-auto pb-2'>
       <PageTitle title={tab.name} description={<TitleDescription />}>
         <div className='flex gap-2'>
           <span>scroll lock</span>
@@ -101,7 +101,7 @@ const ChatMessageList = ({ tab, tab_id }: { tab: ChatTabConfig, tab_id: string }
   }, [count, rowVirtualizer])
 
   return (
-    <div className='px-6 contain-strict justify-between h-full pb-8 overflow-y-auto'
+    <div className='px-6 contain-strict justify-between h-full pb-6 overflow-y-auto'
       ref={scrollParentRef}
     >
       <WelcomeTo tab={tab} />
