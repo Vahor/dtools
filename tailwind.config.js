@@ -96,6 +96,7 @@ export default {
         "surface": "var(--bg-surface-800)",
         "sub": "var(--bg-sub-300)",
         "soft": "var(--bg-soft-200)",
+        "active": "var(--bg-active-100)",
         "weak": "var(--bg-weak-50)",
         "white": "var(--bg-white-0)",
       },

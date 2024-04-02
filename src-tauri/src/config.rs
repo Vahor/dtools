@@ -9,6 +9,7 @@ use tracing::info;
 use crate::sniffer::config::NetworkConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct NodeConfig {
     pub network: NetworkConfig,
     pub game_version: Version,

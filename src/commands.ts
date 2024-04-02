@@ -4,7 +4,7 @@ export const commands = {
   async appReady(): Promise<void> {
     return await TAURI_INVOKE("app_ready");
   },
-  async createChatTab(config: ChatTabConfig): Promise<void> {
+  async createChatTab(config: ChatTabConfig): Promise<string> {
     return await TAURI_INVOKE("create_chat_tab", {
       config,
     });
@@ -31,6 +31,14 @@ export const commands = {
   },
   async getLastPacketTimestamp(): Promise<bigint> {
     return await TAURI_INVOKE("get_last_packet_timestamp");
+  },
+  async setActiveChatTab(windowId: string | null): Promise<void> {
+    return await TAURI_INVOKE("set_active_chat_tab", {
+      windowId,
+    });
+  },
+  async getLastOpenChatTab(): Promise<string | null> {
+    return await TAURI_INVOKE("get_last_open_chat_tab");
   },
 };
 
@@ -63,9 +71,9 @@ export type ChatTabFilterType =
   | { type: "player"; value: string }
   | { type: "word"; value: string }
   | { type: "item"; value: number };
-export type ChatTabOptions = { persistent: boolean; notify: boolean };
+export type ChatTabOptions = { keepHistory: boolean; notify: boolean };
 export type NetworkConfig = { port: number; interface: string };
-export type NodeConfig = { network: NetworkConfig; game_version: Version };
+export type NodeConfig = { network: NetworkConfig; gameVersion: Version };
 export type Version = { version: string; checkForUpdates: boolean };
 
 /** tauri-specta globals **/

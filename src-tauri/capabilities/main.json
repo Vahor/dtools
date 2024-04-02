@@ -6,6 +6,8 @@
     "*"
   ],
   "permissions": [
-    "window:allow-start-dragging"
+    "window:allow-start-dragging",
+    "fs:allow-appdata-read-recursive",
+    "notification:default"
   ]
 }

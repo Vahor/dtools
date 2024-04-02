@@ -159,6 +159,7 @@
     --bg-strong-950: var(--neutral-950);
     --bg-sub-300: var(--neutral-300);
     --bg-surface-800: var(--neutral-800);
+    --bg-active-100: var(--neutral-100);
     --bg-weak-50: var(--neutral-50);
     --bg-white-0: var(--neutral-0);
     --illustration-soft-200: var(--neutral-200);
@@ -245,6 +246,7 @@
     --bg-strong-950: var(--neutral-0);
     --bg-sub-300: var(--neutral-600);
     --bg-surface-800: var(--neutral-200);
+    --bg-active-100: var(--neutral-800);
     --bg-weak-50: var(--neutral-900);
     --bg-white-0: var(--neutral-950);
     --illustration-soft-200: var(--neutral-800);
@@ -314,40 +316,13 @@
     --primary-dark: var(--blue-800);
     --primary-darker: var(--blue-700);
   }
-  [data-theme="purple"] {
-    /* colors */
-    --primary-alpha-10: var(--alpha-purple-alpha-10);
-    --primary-alpha-16: var(--alpha-purple-alpha-16);
-    --primary-alpha-24: var(--alpha-purple-alpha-24);
-    --primary-base: var(--purple-500);
-    --primary-dark: var(--purple-800);
-    --primary-darker: var(--purple-700);
-  }
-  [data-theme="orange"] {
-    /* colors */
-    --primary-alpha-10: var(--alpha-orange-alpha-10);
-    --primary-alpha-16: var(--alpha-orange-alpha-16);
-    --primary-alpha-24: var(--alpha-orange-alpha-24);
-    --primary-base: var(--orange-500);
-    --primary-dark: var(--orange-800);
-    --primary-darker: var(--orange-700);
-  }
-  [data-theme="sky"] {
-    /* colors */
-    --primary-alpha-10: var(--alpha-sky-alpha-10);
-    --primary-alpha-16: var(--alpha-sky-alpha-16);
-    --primary-alpha-24: var(--alpha-sky-alpha-24);
-    --primary-base: var(--sky-600);
-    --primary-dark: var(--sky-800);
-    --primary-darker: var(--sky-700);
-  }
 
   * {
     @apply border-soft outline-primary-base min-w-0;
   }
 
   .focus-ring {
-    @apply focus-visible:ring-primary-base focus:ring-primary-base ring-offset-white focus:ring-2 focus:ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    @apply focus-visible:ring-faded-base focus:ring-faded-base ring-offset-primary-dark focus:ring-1 focus-visible:outline-none focus-visible:ring-1;
   }
 
   .focus-ring-force {

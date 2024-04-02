@@ -7,8 +7,9 @@ use crate::sniffer::parser::packet::Packet;
 
 #[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
 pub struct ChatViewsConfig {
-    #[serde(flatten)]
     pub views: HashMap<String, ChatTabConfig>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_tab_id: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, specta::Type)]
@@ -21,8 +22,9 @@ pub struct ChatTabConfig {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct ChatTabOptions {
-    pub persistent: bool,
+    pub keep_history: bool,
     pub notify: bool,
 }
 
@@ -97,6 +99,7 @@ impl Default for ChatViewsConfig {
     fn default() -> Self {
         ChatViewsConfig {
             views: HashMap::new(),
+            last_tab_id: None,
         }
     }
 }
@@ -104,7 +107,7 @@ impl Default for ChatViewsConfig {
 impl Default for ChatTabOptions {
     fn default() -> Self {
         ChatTabOptions {
-            persistent: false,
+            keep_history: true,
             notify: false,
         }
     }
@@ -134,13 +137,14 @@ mod tests {
         assert_eq!(config, r#"{}"#);
 
         let config = ChatViewsConfig {
+            last_tab_id: None,
             views: HashMap::from([(
                 "test".to_string(),
                 ChatTabConfig {
                     name: "test".to_string(),
                     order: 0,
                     options: ChatTabOptions {
-                        persistent: true,
+                        keep_history: true,
                         notify: true,
                     },
                     filters: Some(ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1))),
@@ -151,17 +155,18 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test":{"persistent":true,"notify":true,"filters":{"type":"channel","value":1},"order":0}}"#
+            r#"{"test":{"keepHistory":true,"notify":true,"filters":{"type":"channel","value":1},"order":0}}"#
         );
 
         let config = ChatViewsConfig {
+            last_tab_id: None,
             views: HashMap::from([(
                 "test2".to_string(),
                 ChatTabConfig {
                     name: "test2".to_string(),
                     order: 0,
                     options: ChatTabOptions {
-                        persistent: true,
+                        keep_history: true,
                         notify: true,
                     },
                     filters: Some(ChatTabFilterTree::And(vec![
@@ -175,17 +180,18 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test2":{"persistent":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]},"order":0}}"#
+            r#"{"test2":{"keepHistory":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]},"order":0}}"#
         );
 
         let config = ChatViewsConfig {
+            last_tab_id: None,
             views: HashMap::from([(
                 "test3".to_string(),
                 ChatTabConfig {
                     name: "test3".to_string(),
                     order: 0,
                     options: ChatTabOptions {
-                        persistent: true,
+                        keep_history: true,
                         notify: true,
                     },
                     filters: Some(ChatTabFilterTree::Or(vec![
@@ -205,7 +211,7 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test3":{"persistent":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]},"order":0}}"#
+            r#"{"test3":{"keepHistory":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]},"order":0}}"#
         );
     }
 }

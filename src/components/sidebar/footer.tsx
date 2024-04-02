@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ButtonTooltip } from "../ui/button-tooltip";
 import { Link } from "@tanstack/react-router";
+import { useConfigStore } from "@/stores/config.store";
 
 export const SidebarFooter = () => {
 
@@ -23,8 +24,9 @@ export const SidebarFooter = () => {
 const StatusIndicator = () => {
 
   const [lastPacketTimeStamp, setLastPacketTimeStamp] = useState<bigint | null>(null);
-  const [version, setVersion] = useState<string | null>(null);
 
+  const config = useConfigStore(state => state.config);
+  const version = config?.gameVersion.version;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,12 +38,6 @@ const StatusIndicator = () => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    commands.getGlobalConfig().then((config) => {
-      setVersion(config.game_version.version);
-      console.log('config', config);
-    });
-  }, []);
 
   const now = BigInt(Date.now());
   const isActive = lastPacketTimeStamp !== null && lastPacketTimeStamp + BigInt(10000) > now;

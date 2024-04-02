@@ -18,7 +18,8 @@ import { Route as DashboardLayoutSettingsImport } from './routes/dashboard/_layo
 import { Route as DashboardLayoutHomeImport } from './routes/dashboard/_layout/home'
 import { Route as DashboardLayoutchatChatImport } from './routes/dashboard/_layout/(chat)/chat'
 import { Route as DashboardLayoutchatChatIndexImport } from './routes/dashboard/_layout/(chat)/chat.index'
-import { Route as DashboardLayoutchatChatChatidImport } from './routes/dashboard/_layout/(chat)/chat.$chat_id'
+import { Route as DashboardLayoutchatChatNewImport } from './routes/dashboard/_layout/(chat)/chat.new'
+import { Route as DashboardLayoutchatChatTabidImport } from './routes/dashboard/_layout/(chat)/chat.$tab_id'
 
 // Create Virtual Routes
 
@@ -57,9 +58,16 @@ const DashboardLayoutchatChatIndexRoute =
     getParentRoute: () => DashboardLayoutchatChatRoute,
   } as any)
 
-const DashboardLayoutchatChatChatidRoute =
-  DashboardLayoutchatChatChatidImport.update({
-    path: '/$chat_id',
+const DashboardLayoutchatChatNewRoute = DashboardLayoutchatChatNewImport.update(
+  {
+    path: '/new',
+    getParentRoute: () => DashboardLayoutchatChatRoute,
+  } as any,
+)
+
+const DashboardLayoutchatChatTabidRoute =
+  DashboardLayoutchatChatTabidImport.update({
+    path: '/$tab_id',
     getParentRoute: () => DashboardLayoutchatChatRoute,
   } as any)
 
@@ -87,8 +95,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutchatChatImport
       parentRoute: typeof DashboardLayoutImport
     }
-    '/dashboard/_layout/(chat)/chat/$chat_id': {
-      preLoaderRoute: typeof DashboardLayoutchatChatChatidImport
+    '/dashboard/_layout/(chat)/chat/$tab_id': {
+      preLoaderRoute: typeof DashboardLayoutchatChatTabidImport
+      parentRoute: typeof DashboardLayoutchatChatImport
+    }
+    '/dashboard/_layout/(chat)/chat/new': {
+      preLoaderRoute: typeof DashboardLayoutchatChatNewImport
       parentRoute: typeof DashboardLayoutchatChatImport
     }
     '/dashboard/_layout/(chat)/chat/': {
@@ -106,7 +118,8 @@ export const routeTree = rootRoute.addChildren([
       DashboardLayoutHomeRoute,
       DashboardLayoutSettingsRoute,
       DashboardLayoutchatChatRoute.addChildren([
-        DashboardLayoutchatChatChatidRoute,
+        DashboardLayoutchatChatTabidRoute,
+        DashboardLayoutchatChatNewRoute,
         DashboardLayoutchatChatIndexRoute,
       ]),
     ]),

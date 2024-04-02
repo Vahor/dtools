@@ -17,14 +17,6 @@ pub mod features;
 pub mod node;
 pub mod sniffer;
 
-#[tauri::command(async)]
-#[specta::specta]
-async fn app_ready(handle: tauri::AppHandle) {
-    info!("App is ready");
-    let main_window = handle.get_webview_window("main").unwrap();
-    main_window.show().unwrap();
-}
-
 fn fix_specta(path: &str) {
     // replace all occurence of "plugin:tauri-specta" in the file
     // This is because the plugin is not yet released and the permissions are not working
@@ -36,15 +28,24 @@ fn fix_specta(path: &str) {
     println!("Fixed specta");
 }
 
+#[tauri::command(async)]
+#[specta::specta]
+async fn app_ready(handle: tauri::AppHandle) {
+    info!("App is ready");
+    let main_window = handle.get_webview_window("main").unwrap();
+    // TODO: does not work, maybe because tauri beta ?
+    main_window.show().unwrap();
+}
+
 #[tauri::command]
 #[specta::specta]
 fn create_chat_tab(
     state: tauri::State<'_, Arc<Node>>,
     config: features::chat::config::ChatTabConfig,
-) {
+) -> String {
     // TODO: specta issue, we can't move the function in a separate file
     let mut chat = state.features.chat.write().unwrap();
-    chat.create_tab(config);
+    chat.create_tab(config)
 }
 
 #[tauri::command]
@@ -86,6 +87,20 @@ fn list_chat_tabs(
 
 #[tauri::command]
 #[specta::specta]
+fn set_active_chat_tab(state: tauri::State<'_, Arc<Node>>, window_id: Option<String>) {
+    let mut chat = state.features.chat.write().unwrap();
+    chat.set_active_tab(window_id);
+}
+
+#[tauri::command]
+#[specta::specta]
+fn get_last_open_chat_tab(state: tauri::State<'_, Arc<Node>>) -> Option<String> {
+    let chat = state.features.chat.read().unwrap();
+    chat.get_last_active_tab()
+}
+
+#[tauri::command]
+#[specta::specta]
 fn get_global_config(state: tauri::State<'_, Arc<Node>>) -> config::NodeConfig {
     let config = state.config.config.read().unwrap();
     debug!("Config: {:?}", *config);
@@ -116,7 +131,9 @@ fn main() {
                 get_chat_tab_config,
                 list_chat_tabs,
                 get_global_config,
-                get_last_packet_timestamp
+                get_last_packet_timestamp,
+                set_active_chat_tab,
+                get_last_open_chat_tab,
             ])
             .config(
                 specta::ts::ExportConfig::default()
@@ -167,6 +184,7 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         // .plugin(tauri_plugin_store::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         // TODO: use tauri-specta when v2 is released
         .invoke_handler(tauri::generate_handler![
@@ -176,7 +194,9 @@ fn main() {
             get_chat_tab_config,
             list_chat_tabs,
             get_global_config,
-            get_last_packet_timestamp
+            get_last_packet_timestamp,
+            set_active_chat_tab,
+            get_last_open_chat_tab,
         ]);
 
     app.run(tauri::generate_context!())
