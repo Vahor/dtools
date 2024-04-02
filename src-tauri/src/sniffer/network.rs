@@ -178,7 +178,7 @@ impl PacketListener {
                 match metadata {
                     Err(err) => match err {
                         ParseResult::Incomplete => {
-                            warn!("Incomplete packet: {:?}", err);
+                            // warn!("Incomplete packet: {:?}", err);
                             last_packet_header = Some(header);
                         }
                         _ => {
@@ -188,7 +188,8 @@ impl PacketListener {
                     },
                     Ok(metadata) => {
                         buffer.clear(); // TODO: adapt to other ranges
-                        debug!("Parsed metadata: {:?}", metadata.id);
+                                        // debug!("Parsed metadata: {:?}", metadata.id);
+                        last_packet_header = None;
                         if PacketListener::_has_subscriptions(
                             &subscriptions.lock().unwrap(),
                             &metadata.id,

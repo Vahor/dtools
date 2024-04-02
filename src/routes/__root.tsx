@@ -24,6 +24,7 @@ function App() {
   useEffect(() => {
     document.body.classList.add('dark');
     document.body.setAttribute('data-theme', 'blue');
+    // dark theme attribute css
 
     Promise.all([
       loadTranslation("fr"),

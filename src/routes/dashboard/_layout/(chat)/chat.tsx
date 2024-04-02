@@ -13,7 +13,7 @@ export const Route = createFileRoute('/dashboard/_layout/(chat)/chat')({
 function ChatComponent() {
   return (
     <>
-      <InnerSidebar className="select-auto">
+      <InnerSidebar>
         <ChatSidebar />
       </InnerSidebar>
       <Outlet />

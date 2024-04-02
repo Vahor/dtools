@@ -40,7 +40,7 @@ const StatusIndicator = () => {
 
 
   const now = BigInt(Date.now());
-  const isActive = lastPacketTimeStamp !== null && lastPacketTimeStamp + BigInt(10000) > now;
+  const isActive = lastPacketTimeStamp !== null && lastPacketTimeStamp + BigInt(5000) > now;
 
 
   return (

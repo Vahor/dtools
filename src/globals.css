@@ -337,6 +337,7 @@
   html {
     scroll-behavior: smooth;
     @apply min-h-full;
+      color-scheme: dark;
   }
 
   body {

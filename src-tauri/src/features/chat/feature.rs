@@ -13,6 +13,7 @@ use crate::{
 };
 use tauri_plugin_notification::NotificationExt;
 use tauri_specta::Event;
+use tracing::debug;
 use uuid::Uuid;
 
 use super::config::ChatViewsConfig;
@@ -56,12 +57,13 @@ impl ChatFeature {
         let to_str = serde_json::to_string(event).unwrap();
         let dir_path = self.dir_path.as_ref().unwrap().join("history");
         let history_path = dir_path.join(format!("{}.jsonl", id));
+        fs::create_dir_all(&dir_path).unwrap();
+
         let mut file = OpenOptions::new()
             .create(true)
             .append(true)
             .open(history_path)
             .unwrap();
-        fs::create_dir_all(&dir_path).unwrap();
 
         writeln!(file, "{}", to_str).unwrap();
     }
@@ -112,6 +114,11 @@ impl ChatFeature {
 
         for (id, tab) in views.iter() {
             let is_active = active_window.as_ref().map_or(false, |active| active == *id);
+            debug!(
+                "tab id: {}, active_id: {}",
+                id,
+                active_window.as_deref().unwrap_or("")
+            );
             let has_notification = tab.options.notify;
             let is_persistent = tab.options.keep_history;
 

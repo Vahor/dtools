@@ -89,6 +89,7 @@ fn list_chat_tabs(
 #[specta::specta]
 fn set_active_chat_tab(state: tauri::State<'_, Arc<Node>>, window_id: Option<String>) {
     let mut chat = state.features.chat.write().unwrap();
+    debug!("Active tab set to: {:?}", &window_id);
     chat.set_active_tab(window_id);
 }
 
