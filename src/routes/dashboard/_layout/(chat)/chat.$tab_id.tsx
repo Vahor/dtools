@@ -5,53 +5,85 @@ import { PageTitle } from '@/components/page-title';
 import { ChatEvent, ChatTabConfig, commands, events } from '@/commands';
 import { readChatHistory } from '@/lib/features/chat/history';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { create } from 'zustand';
 
 export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$tab_id')({
   component: ChatComponent,
   errorComponent: () => <div>Chat not found</div>,
 });
 
-const itemHeight = (containerWidth: number, item: ChatEvent, baseHeight: number, lineHeight: number) => {
-  const avgCharWidth = 10;
-  const charsPerLine = Math.floor(containerWidth / avgCharWidth);
-  const textLength = item.content.length;
-  const linesOfText = Math.ceil(textLength / charsPerLine);
-
-  const totalHeight = baseHeight + (linesOfText * lineHeight);
-  return totalHeight;
-}
+const useMessageStore = create<{ messages: ChatEvent[], setMessages: (messages: ChatEvent[]) => void, addMessage: (message: ChatEvent) => void, addBulkMessages: (messages: ChatEvent[]) => void }>((set) => ({
+  messages: [],
+  setMessages: (messages) => set({ messages }),
+  addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+  addBulkMessages: (messages) => set((state) => ({ messages: [...state.messages, ...messages] })),
+}));
 
 function ChatComponent() {
   const { tab_id } = Route.useParams();
   const tabs = useChatStore(state => state.tabs);
   const tab = tabs[tab_id];
 
+  if (!tab) {
+    {/* TODO: handle error */ }
+    return <div>Chat not found</div>
+  }
 
-  const [chatMessages, setChatMessages] = useState<ChatEvent[]>([])
+
+  return (
+    <div className='flex flex-col  w-full select-auto' >
+      <PageTitle title={tab.name} description={<TitleDescription />}>
+        <div className='flex gap-2'>
+          <span>scroll lock</span>
+          <span>bell {tab.options.notify ? "on" : "off"}</span>
+          <span>persistant {tab.options.keepHistory ? "on" : "off"}</span>
+          <span>config</span>
+        </div>
+      </PageTitle>
+      <ChatMessageList tab={tab} tab_id={tab_id} key={tab_id} />
+    </div >
+  )
+}
+
+const TitleDescription = () => {
+  const count = useMessageStore(state => state.messages.length);
+
+  return `${count} messages`;
+}
+
+const ChatMessageList = ({ tab, tab_id }: { tab: ChatTabConfig, tab_id: string }) => {
+  const messages = useMessageStore(state => state.messages);
+  const setMessages = useMessageStore(state => state.setMessages);
+  const addMessage = useMessageStore(state => state.addMessage);
+
+
+  const count = messages.length;
 
   const scrollParentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
-    count: chatMessages.length,
+    count: messages.length,
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: (index) => itemHeight(scrollParentRef.current!.clientWidth, chatMessages[index], 30, 20),
+    estimateSize: () => 80,
     overscan: 5,
+    scrollPaddingEnd: 80
   });
 
   useEffect(() => {
     if (!tab) return;
     commands.setActiveChatTab(tab_id);
-    setChatMessages([]);
 
 
     const isPersistant = tab?.options.keepHistory;
     if (isPersistant) {
       readChatHistory(tab_id).then((history) => {
-        setChatMessages((prev) => [...prev, ...history]);
+        setMessages(history);
       });
+    } else {
+      setMessages([]);
     }
 
     const unlisten = events.chatEvent.listen((event) => {
-      setChatMessages((prev) => [event.payload, ...prev]);
+      addMessage(event.payload);
     })
 
     return () => {
@@ -59,55 +91,51 @@ function ChatComponent() {
       unlisten.then(f => f());
       commands.setActiveChatTab(null);
     }
-  }, [rowVirtualizer])
+  }, [])
 
+  const items = rowVirtualizer.getVirtualItems();
 
-
-
-  if (!tab) {
-    {/* TODO: handle error */ }
-    return <div>Chat not found</div>
-  }
+  useEffect(() => {
+    if (count === 0) return;
+    rowVirtualizer.scrollToIndex(count - 1);
+  }, [count, rowVirtualizer])
 
   return (
-    <div className='flex flex-col  w-full select-auto' >
-      <PageTitle title={tab.name} description={`${chatMessages.length} messages`}>
-        <div className='flex gap-2'>
-          <span>mute</span>
-          <span>persistant</span>
-          <span>config</span>
-        </div>
-      </PageTitle>
-      <div className='px-6 flex flex-col flex-1 justify-between h-full pb-8 overflow-auto'
-        ref={scrollParentRef}
+    <div className='px-6 contain-strict justify-between h-full pb-8 overflow-y-auto'
+      ref={scrollParentRef}
+    >
+      <WelcomeTo tab={tab} />
+      <div
+        style={{ height: rowVirtualizer.getTotalSize(), position: 'relative', width: '100%' }}
       >
-        <WelcomeTo tab={tab} />
         <ul
-          style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${items[0]?.start ?? 0}px)`,
+          }}
         >
-          {rowVirtualizer.getVirtualItems().map(({ index, key, size, start }) => {
-            const item = chatMessages[index];
+          {items.map(({ index, key }) => {
+            const item = messages[index];
             return (
-              <div
+              <li
                 key={key}
+                data-index={index}
                 className='items-center flex py-2 w-full border-t'
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  height: `${size}px`,
-                  width: '100%',
-                  transform: `translateY(${start}px)`,
-                }}
+                ref={rowVirtualizer.measureElement}
               >
                 <ChatMessage message={item} />
-              </div>
+              </li>
             );
           })}
         </ul>
       </div>
-    </div >
-  )
+    </div>
+
+  );
+
 }
 
 const WelcomeTo = ({ tab }: { tab: ChatTabConfig }) => {

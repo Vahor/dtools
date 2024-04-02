@@ -114,21 +114,14 @@ impl ChatFeature {
 
         for (id, tab) in views.iter() {
             let is_active = active_window.as_ref().map_or(false, |active| active == *id);
-            debug!(
-                "tab id: {}, active_id: {}",
-                id,
-                active_window.as_deref().unwrap_or("")
-            );
             let has_notification = tab.options.notify;
             let is_persistent = tab.options.keep_history;
-
-            let send_notification = (is_persistent && has_notification) || is_active;
 
             if is_persistent {
                 chat_feature.append_history(&id, &chat_event);
             }
 
-            if send_notification {
+            if has_notification {
                 handle
                     .notification()
                     .builder()

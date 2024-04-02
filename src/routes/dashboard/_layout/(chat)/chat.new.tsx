@@ -20,8 +20,11 @@ function ChatNew() {
         notify: values.notification,
         keepHistory: values.keepHistory
       },
-      order: Object.keys(tabs).length
-    }
+      order: Object.keys(tabs).length,
+      filters: values.filters,
+    };
+
+    console.log(JSON.stringify(config.filters));
 
     const tabId = await commands.createChatTab(config);
     addTab(tabId, config);

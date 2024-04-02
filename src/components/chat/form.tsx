@@ -39,7 +39,9 @@ const filterTreeLeafSchema = z.object({
 
 const filterTreeSchema: z.ZodType<ChatTabFilterTree> = z.union([
   // use lazy
-  filterTreeLeafSchema,
+  z.lazy(() => z.object({
+    leaf: filterSchema,
+  })),
   z.lazy(() => z.object({
     and: z.array(filterTreeSchema),
   })),
@@ -207,7 +209,7 @@ const FilterField = ({ index, control }: { index: number, control: ReturnType<ty
     name: `filters.and.${index}.or`,
   });
   const addFilter = (type: ChatTabFilterType) => {
-    append({ filter: type });
+    append({ leaf: type });
   }
 
   return (
@@ -264,7 +266,7 @@ const LangMapping = {
 
 const FilterFieldSingle = ({ index, value, update, remove, append }: { index: number, value: ChatTabFilterTree, update: (index: number, value: ChatTabFilterTree) => void, remove: (index: number) => void, append: (value: ChatTabFilterTree) => void }) => {
 
-  const leaf = "filter" in value ? value.filter : null;
+  const leaf = "leaf" in value ? value.leaf : null;
   if (!leaf) return null;
 
   const deleteFilter = () => {
@@ -276,7 +278,7 @@ const FilterFieldSingle = ({ index, value, update, remove, append }: { index: nu
   }
 
   const updateFilter = (newValue: ChatTabFilterType) => {
-    const newTree = { filter: newValue };
+    const newTree = { leaf: newValue };
     update(index, newTree);
   }
 

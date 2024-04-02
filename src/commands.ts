@@ -55,6 +55,7 @@ export type ChatEvent = {
   sender_name: string;
   content: string;
   timestamp: number;
+  objects: { [key in string]: string }[] | null;
 };
 export type ChatTabConfig = {
   name: string;
@@ -65,7 +66,7 @@ export type ChatTabConfig = {
 export type ChatTabFilterTree =
   | { and: ChatTabFilterTree[] }
   | { or: ChatTabFilterTree[] }
-  | { filter: ChatTabFilterType };
+  | { leaf: ChatTabFilterType };
 export type ChatTabFilterType =
   | { type: "channel"; value: number }
   | { type: "player"; value: string }

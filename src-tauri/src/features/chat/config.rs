@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
+use tracing::debug;
 
 use crate::sniffer::parser::packet::Packet;
 
@@ -34,6 +35,7 @@ pub struct ChatEvent {
     pub sender_name: String,
     pub content: String,
     pub timestamp: u32,
+    pub objects: Option<Vec<HashMap<String, String>>>,
 }
 
 impl ChatEvent {
@@ -55,6 +57,21 @@ impl ChatEvent {
                 .unwrap()
                 .to_string(),
             timestamp: packet.data.get("timestamp").unwrap().as_u64().unwrap() as u32,
+            objects: packet.data.get("objects").map(|objects| {
+                objects
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|object| {
+                        object
+                            .as_object()
+                            .unwrap()
+                            .iter()
+                            .map(|(key, value)| (key.to_string(), value.to_string()))
+                            .collect()
+                    })
+                    .collect()
+            }),
         }
     }
 }
@@ -65,8 +82,8 @@ pub enum ChatTabFilterTree {
     And(Vec<ChatTabFilterTree>),
     Or(Vec<ChatTabFilterTree>),
 
-    #[serde(untagged)]
-    Filter(ChatTabFilterType),
+    // #[serde(untagged)] we ca't use untagged because of specta
+    Leaf(ChatTabFilterType),
 }
 
 impl ChatTabFilterTree {
@@ -74,7 +91,7 @@ impl ChatTabFilterTree {
         match self {
             ChatTabFilterTree::And(filters) => filters.iter().all(|filter| filter.evaluate(data)),
             ChatTabFilterTree::Or(filters) => filters.iter().any(|filter| filter.evaluate(data)),
-            ChatTabFilterTree::Filter(filter) => match filter {
+            ChatTabFilterTree::Leaf(filter) => match filter {
                 ChatTabFilterType::Channel(channel) => data.channel == *channel,
                 ChatTabFilterType::Player(player) => data.sender_name == *player,
                 ChatTabFilterType::Word(word) => data.content.contains(word),
@@ -125,21 +142,30 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let config = r#"{}"#;
+        let config = r#"{"views": {}}"#;
         let config: ChatViewsConfig = serde_json::from_str(config).unwrap();
         assert_eq!(config.views.len(), 0);
+
+        let config = r#"{"views":{"id-test2":{"name":"test2","options":{"keepHistory":true,"notify":true},"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]},"order":0}}}"#;
+        let config: ChatViewsConfig = serde_json::from_str(config).unwrap();
+        assert_eq!(config.views.len(), 1);
+        let tab = config.views.get("test").unwrap();
+        assert_eq!(tab.name, "test");
+        assert_eq!(tab.order, 0);
+        assert_eq!(tab.options.keep_history, true);
+        assert_eq!(tab.options.notify, true);
     }
 
     #[test]
     fn test_serialize() {
         let config = ChatViewsConfig::default();
         let config = serde_json::to_string(&config).unwrap();
-        assert_eq!(config, r#"{}"#);
+        assert_eq!(config, r#"{"views":{}}"#);
 
         let config = ChatViewsConfig {
             last_tab_id: None,
             views: HashMap::from([(
-                "test".to_string(),
+                "id-test".to_string(),
                 ChatTabConfig {
                     name: "test".to_string(),
                     order: 0,
@@ -147,7 +173,7 @@ mod tests {
                         keep_history: true,
                         notify: true,
                     },
-                    filters: Some(ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1))),
+                    filters: Some(ChatTabFilterTree::Leaf(ChatTabFilterType::Channel(1))),
                 },
             )]),
         };
@@ -155,13 +181,13 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test":{"keepHistory":true,"notify":true,"filters":{"type":"channel","value":1},"order":0}}"#
+            r#"{"views":{"id-test":{"name":"test","options":{"keepHistory":true,"notify":true},"filters":{"leaf":{"type":"channel","value":1}},"order":0}}}"#
         );
 
         let config = ChatViewsConfig {
             last_tab_id: None,
             views: HashMap::from([(
-                "test2".to_string(),
+                "id-test2".to_string(),
                 ChatTabConfig {
                     name: "test2".to_string(),
                     order: 0,
@@ -170,8 +196,8 @@ mod tests {
                         notify: true,
                     },
                     filters: Some(ChatTabFilterTree::And(vec![
-                        ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
-                        ChatTabFilterTree::Filter(ChatTabFilterType::Player("player".to_string())),
+                        ChatTabFilterTree::Leaf(ChatTabFilterType::Channel(1)),
+                        ChatTabFilterTree::Leaf(ChatTabFilterType::Player("player".to_string())),
                     ])),
                 },
             )]),
@@ -180,13 +206,13 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test2":{"keepHistory":true,"notify":true,"filters":{"and":[{"type":"channel","value":1},{"type":"player","value":"player"}]},"order":0}}"#
+            r#"{"views":{"id-test2":{"name":"test2","options":{"keepHistory":true,"notify":true},"filters":{"and":[{"leaf":{"type":"channel","value":1}},{"leaf":{"type":"player","value":"player"}}]},"order":0}}}"#
         );
 
         let config = ChatViewsConfig {
             last_tab_id: None,
             views: HashMap::from([(
-                "test3".to_string(),
+                "id-test3".to_string(),
                 ChatTabConfig {
                     name: "test3".to_string(),
                     order: 0,
@@ -195,12 +221,12 @@ mod tests {
                         notify: true,
                     },
                     filters: Some(ChatTabFilterTree::Or(vec![
-                        ChatTabFilterTree::Filter(ChatTabFilterType::Channel(1)),
+                        ChatTabFilterTree::Leaf(ChatTabFilterType::Channel(1)),
                         ChatTabFilterTree::And(vec![
-                            ChatTabFilterTree::Filter(ChatTabFilterType::Player(
+                            ChatTabFilterTree::Leaf(ChatTabFilterType::Player(
                                 "player".to_string(),
                             )),
-                            ChatTabFilterTree::Filter(ChatTabFilterType::Word("word".to_string())),
+                            ChatTabFilterTree::Leaf(ChatTabFilterType::Word("word".to_string())),
                         ]),
                     ])),
                 },
@@ -211,7 +237,7 @@ mod tests {
         let config = serde_json::to_string(&config).unwrap();
         assert_eq!(
             config,
-            r#"{"test3":{"keepHistory":true,"notify":true,"filters":{"or":[{"type":"channel","value":1},{"and":[{"type":"player","value":"player"},{"type":"word","value":"word"}]}]},"order":0}}"#
+            r#"{"views":{"id-test3":{"name":"test3","options":{"keepHistory":true,"notify":true},"filters":{"or":[{"leaf":{"type":"channel","value":1}},{"and":[{"leaf":{"type":"player","value":"player"}},{"leaf":{"type":"word","value":"word"}}]}]},"order":0}}}"#
         );
     }
 }
