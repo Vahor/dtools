@@ -25,5 +25,5 @@ I do not own any aspect of the game.
 
 ```sh
 bun install
-bun run tauri ev
+bun run tauri dev
 ```
