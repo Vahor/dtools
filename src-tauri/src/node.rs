@@ -28,7 +28,7 @@ pub struct Node {
     pub http: reqwest::Client,
     pub downloader: Arc<Mutex<downloader::Downloader>>,
     pub packet_listener: Arc<Mutex<network::PacketListener>>,
-    pub protocol: Arc<protocol::protocol::ProtocolManager>,
+    pub protocol: Arc<RwLock<protocol::protocol::ProtocolManager>>,
 
     pub handle: Option<tauri::AppHandle>,
 
@@ -62,8 +62,7 @@ impl Node {
 
         let http_client = reqwest::Client::new();
 
-        let protocol = protocol::protocol::ProtocolManager::new(data_dir_path)
-            .map_err(NodeError::FailedToInitializeProtocol)?;
+        let protocol = protocol::protocol::ProtocolManager::new();
 
         let packet_listener = network::PacketListener::new();
         let downloader = downloader::Downloader::new();
@@ -77,7 +76,7 @@ impl Node {
             config,
             downloader: Arc::new(Mutex::new(downloader)),
             http: http_client,
-            protocol: Arc::new(protocol),
+            protocol: Arc::new(RwLock::new(protocol)),
             packet_listener: Arc::new(Mutex::new(packet_listener)),
             handle,
             features,
@@ -90,6 +89,8 @@ impl Node {
             node.downloader.lock().unwrap().init(&node).await?;
             node.packet_listener.lock().unwrap().run()?;
         }
+
+        node.protocol.write().unwrap().init(data_dir_path);
 
         node.features
             .chat
