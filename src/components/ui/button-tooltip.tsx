@@ -1,6 +1,6 @@
-import { TooltipContentProps } from "@radix-ui/react-tooltip";
-import { Button, ButtonProps } from "./button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
+import { TooltipContentProps } from '@radix-ui/react-tooltip';
+import { Button, ButtonProps } from './button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
 interface ButtonTooltipProps extends ButtonProps {
   tooltip: string;
@@ -14,7 +14,8 @@ export const ButtonTooltip = ({
   children,
   side = 'top',
   align = 'center',
-  ...props }: ButtonTooltipProps) => {
+  ...props
+}: ButtonTooltipProps) => {
   return (
     <Tooltip disableHoverableContent>
       <TooltipTrigger asChild>
@@ -25,4 +26,4 @@ export const ButtonTooltip = ({
       </TooltipContent>
     </Tooltip>
   );
-}
+};

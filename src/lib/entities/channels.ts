@@ -11,25 +11,22 @@ interface ChatChannel {
   name: string;
 }
 
-
 let channels: ChatChannel[] | undefined = undefined;
 
-
 const loadChannels = async () => {
-  const rawChannels = await readEntitiesFile("ChatChannels.json") as { data: RawChatChannel[] };
+  const rawChannels = (await readEntitiesFile('ChatChannels.json')) as { data: RawChatChannel[] };
   channels = rawChannels.data.map((rawChannel) => ({
     id: rawChannel.id,
     name: translate(rawChannel.nameId),
   }));
-}
-
+};
 
 const getChannels = () => {
   if (channels === undefined) {
-    throw new Error("Channels not loaded");
+    throw new Error('Channels not loaded');
   }
   return channels;
-}
+};
 
 export const chatManager: ResourceManager<ChatChannel[]> = {
   load: loadChannels,

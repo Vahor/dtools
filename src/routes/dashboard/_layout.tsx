@@ -1,10 +1,9 @@
-
-import { Outlet, createFileRoute } from "@tanstack/react-router"
-import { Sidebar } from "@/components/sidebar"
+import { Outlet, createFileRoute } from '@tanstack/react-router';
+import { Sidebar } from '@/components/sidebar';
 
 export const Route = createFileRoute('/dashboard/_layout')({
   component: DashboardLayout,
-})
+});
 
 function DashboardLayout() {
   return (
@@ -14,5 +13,5 @@ function DashboardLayout() {
         <Outlet />
       </main>
     </>
-  )
+  );
 }

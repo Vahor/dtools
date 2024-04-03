@@ -1,4 +1,4 @@
-# DTools 
+# DTools
 
 ## Goals
 
@@ -6,7 +6,7 @@
   - Note: Some bugs but ok
 - [x] Chat tabs based on filters
 - [x] Option to make chat tabs persistant (keep history)
-- [ ] Kamas per session (⬆️ sell, ⬇️  buy)
+- [ ] Kamas per session (⬆️ sell, ⬇️ buy)
 - [ ] History for kamas per session (maybe graph for weeks)
 
 **Note:**
@@ -20,7 +20,7 @@ I do not own any aspect of the game.
   - Reason: I wanted to experiment stuff in Rust
 - Vite
 - Bun
- 
+
 ## Setup
 
 ```sh

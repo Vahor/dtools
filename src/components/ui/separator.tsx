@@ -20,7 +20,7 @@ const separatorVariants = cva('border-b shrink-0', {
 
 export interface SeparatorProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof separatorVariants> { }
+    VariantProps<typeof separatorVariants> {}
 
 const Separator = React.forwardRef<
   React.ElementRef<typeof SeparatorPrimitive.Root>,

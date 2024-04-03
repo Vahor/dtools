@@ -1,13 +1,13 @@
-import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { GripIcon, MessageCircleIcon } from "lucide-react";
-import { ButtonTooltip } from "../ui/button-tooltip";
-import { Link } from "@tanstack/react-router";
+import { ScrollArea } from '@radix-ui/react-scroll-area';
+import { GripIcon, MessageCircleIcon } from 'lucide-react';
+import { ButtonTooltip } from '../ui/button-tooltip';
+import { Link } from '@tanstack/react-router';
 
 const links = [
-  { name: "Accueil", icon: GripIcon, path: "/dashboard/home" },
-  { name: "Chat", icon: MessageCircleIcon, path: "/dashboard/chat" },
+  { name: 'Accueil', icon: GripIcon, path: '/dashboard/home' },
+  { name: 'Chat', icon: MessageCircleIcon, path: '/dashboard/chat' },
 ] as const;
-type Link = typeof links[number];
+type Link = (typeof links)[number];
 
 export const SidebarApps = () => {
   return (
@@ -17,7 +17,7 @@ export const SidebarApps = () => {
       ))}
     </ScrollArea>
   );
-}
+};
 
 const AppLink = ({ name, icon, path }: Link) => {
   const Icon = icon;
@@ -28,4 +28,4 @@ const AppLink = ({ name, icon, path }: Link) => {
       </Link>
     </ButtonTooltip>
   );
-}
+};

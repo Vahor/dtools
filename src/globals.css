@@ -307,7 +307,7 @@
     --text-sub-600: var(--neutral-400);
     --text-white-0: var(--neutral-950);
   }
-  [data-theme="blue"] {
+  [data-theme='blue'] {
     /* colors */
     --primary-alpha-10: var(--alpha-blue-alpha-10);
     --primary-alpha-16: var(--alpha-blue-alpha-16);
@@ -337,7 +337,7 @@
   html {
     scroll-behavior: smooth;
     @apply min-h-full;
-      color-scheme: dark;
+    color-scheme: dark;
   }
 
   body {

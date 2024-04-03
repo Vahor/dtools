@@ -7,7 +7,7 @@ import * as React from 'react';
 const buttonVariants = cva(
   [
     'group inline-flex items-center justify-center text-sm no-underline font-medium transition-colors',
-    "border border-transparent",
+    'border border-transparent',
     'disabled:border-disabled data-[disabled=true]:border-disabled disabled:hover:border-disabled data-[disabled=true]:hover:border-disabled',
     'disabled:cursor-not-allowed data-[disabled=true]:cursor-not-allowed',
     'disabled:pointer-events-none data-[disabled=true]:pointer-events-none',
@@ -17,21 +17,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: [
-          "text-sub data-[status=active]:text-strong",
-        ],
+        default: ['text-sub data-[status=active]:text-strong'],
         'filled-primary': ['bg-primary-base hover:bg-primary-dark', 'text-strong'],
         'filled-neutral': ['bg-faded-light hover:bg-faded-lighter', 'text-strong'],
       },
       active: {
         transparent: [],
-        default: [
-          "bg-white data-[status=active]:bg-active",
-        ],
+        default: ['bg-white data-[status=active]:bg-active'],
       },
       hover: {
-        transparent: [
-        ],
+        transparent: [],
         default: [
           'hover:text-strong data-[status=active]:hover:text-strong',
           'hover:bg-active data-[status=active]:hover:bg-active',
@@ -69,7 +64,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'style'>,
-  VariantProps<typeof buttonVariants> {
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

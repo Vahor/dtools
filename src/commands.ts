@@ -2,50 +2,47 @@
 
 export const commands = {
   async appReady(): Promise<void> {
-    return await TAURI_INVOKE("app_ready");
+    return await TAURI_INVOKE('app_ready');
   },
   async createChatTab(config: ChatTabConfig): Promise<string> {
-    return await TAURI_INVOKE("create_chat_tab", {
+    return await TAURI_INVOKE('create_chat_tab', {
       config,
     });
   },
-  async updateChatTabConfig(
-    windowId: string,
-    config: ChatTabConfig,
-  ): Promise<void> {
-    return await TAURI_INVOKE("update_chat_tab_config", {
+  async updateChatTabConfig(windowId: string, config: ChatTabConfig): Promise<void> {
+    return await TAURI_INVOKE('update_chat_tab_config', {
       windowId,
       config,
     });
   },
   async getChatTabConfig(windowId: string): Promise<ChatTabConfig | null> {
-    return await TAURI_INVOKE("get_chat_tab_config", {
+    return await TAURI_INVOKE('get_chat_tab_config', {
       windowId,
     });
   },
   async listChatTabs(): Promise<{ [key in string]: ChatTabConfig }> {
-    return await TAURI_INVOKE("list_chat_tabs");
+    return await TAURI_INVOKE('list_chat_tabs');
   },
   async getGlobalConfig(): Promise<NodeConfig> {
-    return await TAURI_INVOKE("get_global_config");
+    return await TAURI_INVOKE('get_global_config');
   },
   async getLastPacketTimestamp(): Promise<bigint> {
-    return await TAURI_INVOKE("get_last_packet_timestamp");
+    return await TAURI_INVOKE('get_last_packet_timestamp');
   },
   async setActiveChatTab(windowId: string | null): Promise<void> {
-    return await TAURI_INVOKE("set_active_chat_tab", {
+    return await TAURI_INVOKE('set_active_chat_tab', {
       windowId,
     });
   },
   async getLastOpenChatTab(): Promise<string | null> {
-    return await TAURI_INVOKE("get_last_open_chat_tab");
+    return await TAURI_INVOKE('get_last_open_chat_tab');
   },
 };
 
 export const events = __makeEvents__<{
   chatEvent: ChatEvent;
 }>({
-  chatEvent: "plugin:tauri-specta:chat-event",
+  chatEvent: 'plugin:tauri-specta:chat-event',
 });
 
 /** user-defined types **/
@@ -68,10 +65,10 @@ export type ChatTabFilterTree =
   | { or: ChatTabFilterTree[] }
   | { leaf: ChatTabFilterType };
 export type ChatTabFilterType =
-  | { type: "channel"; value: number }
-  | { type: "player"; value: string }
-  | { type: "word"; value: string }
-  | { type: "item"; value: number };
+  | { type: 'channel'; value: number }
+  | { type: 'player'; value: string }
+  | { type: 'word'; value: string }
+  | { type: 'item'; value: number };
 export type ChatTabOptions = { keepHistory: boolean; notify: boolean };
 export type NetworkConfig = { port: number; interface: string };
 export type NodeConfig = { network: NetworkConfig; gameVersion: Version };
@@ -79,29 +76,21 @@ export type Version = { version: string; checkForUpdates: boolean };
 
 /** tauri-specta globals **/
 
-import { invoke as TAURI_INVOKE } from "@tauri-apps/api/core";
-import * as TAURI_API_EVENT from "@tauri-apps/api/event";
-import { type WebviewWindow as __WebviewWindow__ } from "@tauri-apps/api/webviewWindow";
+import { invoke as TAURI_INVOKE } from '@tauri-apps/api/core';
+import * as TAURI_API_EVENT from '@tauri-apps/api/event';
+import { type WebviewWindow as __WebviewWindow__ } from '@tauri-apps/api/webviewWindow';
 
 type __EventObj__<T> = {
-  listen: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
-  once: (
-    cb: TAURI_API_EVENT.EventCallback<T>,
-  ) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
+  listen: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.listen<T>>;
+  once: (cb: TAURI_API_EVENT.EventCallback<T>) => ReturnType<typeof TAURI_API_EVENT.once<T>>;
   emit: T extends null
     ? (payload?: T) => ReturnType<typeof TAURI_API_EVENT.emit>
     : (payload: T) => ReturnType<typeof TAURI_API_EVENT.emit>;
 };
 
-type __Result__<T, E> =
-  | { status: "ok"; data: T }
-  | { status: "error"; error: E };
+type __Result__<T, E> = { status: 'ok'; data: T } | { status: 'error'; error: E };
 
-function __makeEvents__<T extends Record<string, any>>(
-  mappings: Record<keyof T, string>,
-) {
+function __makeEvents__<T extends Record<string, any>>(mappings: Record<keyof T, string>) {
   return new Proxy(
     {} as unknown as {
       [K in keyof T]: __EventObj__<T[K]> & {
@@ -120,11 +109,11 @@ function __makeEvents__<T extends Record<string, any>>(
           }),
           get: (_, command: keyof __EventObj__<any>) => {
             switch (command) {
-              case "listen":
+              case 'listen':
                 return (arg: any) => TAURI_API_EVENT.listen(name, arg);
-              case "once":
+              case 'once':
                 return (arg: any) => TAURI_API_EVENT.once(name, arg);
-              case "emit":
+              case 'emit':
                 return (arg: any) => TAURI_API_EVENT.emit(name, arg);
             }
           },

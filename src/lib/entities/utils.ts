@@ -1,8 +1,8 @@
 import { exists, BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
 
-const EXTRACTOR_DIR = "dofus/datafus";
-const ENTITIES_DIR = "entities_json";
-const TRANSLATIONS_DIR = "translations_json";
+const EXTRACTOR_DIR = 'dofus/datafus';
+const ENTITIES_DIR = 'entities_json';
+const TRANSLATIONS_DIR = 'translations_json';
 
 export const readEntitiesFile = async (filename: string): Promise<unknown> => {
   const path = `${EXTRACTOR_DIR}/${ENTITIES_DIR}/${filename}`;
@@ -13,7 +13,7 @@ export const readEntitiesFile = async (filename: string): Promise<unknown> => {
 
   const content = await readTextFile(path, { baseDir: BaseDirectory.AppData });
   return JSON.parse(content);
-}
+};
 
 export const readTranslationsFile = async (filename: string): Promise<unknown> => {
   const path = `${EXTRACTOR_DIR}/${TRANSLATIONS_DIR}/${filename}`;
@@ -24,7 +24,7 @@ export const readTranslationsFile = async (filename: string): Promise<unknown> =
 
   const content = await readTextFile(path, { baseDir: BaseDirectory.AppData });
   return JSON.parse(content);
-}
+};
 
 export const readJsonlFile = async (filename: string): Promise<unknown> => {
   const path = `${filename}`;
@@ -36,4 +36,4 @@ export const readJsonlFile = async (filename: string): Promise<unknown> => {
   const content = await readTextFile(path, { baseDir: BaseDirectory.AppData });
   const lines = content.split('\n').filter(Boolean);
   return lines.map((line) => JSON.parse(line));
-}
+};

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "format": "prettier --write src"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -29,6 +30,7 @@
     "clsx": "^2.1.0",
     "dayjs": "^1.11.10",
     "lucide-react": "^0.364.0",
+    "prettier": "^3.2.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.2",

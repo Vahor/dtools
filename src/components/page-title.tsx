@@ -1,4 +1,3 @@
-
 interface PageTitleProps {
   title: React.ReactNode;
   description?: React.ReactNode;
@@ -14,5 +13,5 @@ export const PageTitle = ({ title, description, children }: PageTitleProps) => {
       </div>
       {children}
     </div>
-  )
-}
+  );
+};

@@ -1,11 +1,11 @@
 import { ChatTabConfig } from '@/commands';
-import { create } from 'zustand'
+import { create } from 'zustand';
 
 interface ChatStore {
-  tabs: Record<string, ChatTabConfig>,
+  tabs: Record<string, ChatTabConfig>;
 
-  setTabs: (channels: Record<string, ChatTabConfig>) => void,
-  setTab: (id: string, channel: ChatTabConfig) => void,
+  setTabs: (channels: Record<string, ChatTabConfig>) => void;
+  setTab: (id: string, channel: ChatTabConfig) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -13,4 +13,4 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   setTabs: (channels) => set({ tabs: channels }),
   setTab: (id, channel) => set((state) => ({ tabs: { ...state.tabs, [id]: channel } })),
-}))
+}));
