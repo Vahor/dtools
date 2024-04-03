@@ -228,7 +228,8 @@ mod tests {
         ];
         let path = "tests/fixtures/".to_string();
         let path = Path::new(&path);
-        let procol_manager = ProtocolManager::new(path).unwrap();
+        let mut procol_manager = ProtocolManager::new();
+        procol_manager.init(path).unwrap();
         let _ = Node::init_logger(path);
 
         for hex_stream in hex_streams.iter() {

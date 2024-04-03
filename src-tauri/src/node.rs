@@ -90,7 +90,7 @@ impl Node {
             node.packet_listener.lock().unwrap().run()?;
         }
 
-        node.protocol.write().unwrap().init(data_dir_path);
+        node.protocol.write().unwrap().init(data_dir_path)?;
 
         node.features
             .chat
