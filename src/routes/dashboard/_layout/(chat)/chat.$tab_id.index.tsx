@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { ButtonTooltip } from '@/components/ui/button-tooltip';
 import { SettingsIcon } from 'lucide-react';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { ChatEvent, ChatTabConfig, commands, events } from '@/commands';
+import { type ChatEvent, type ChatTabConfig, commands, events } from '@/commands';
 import { PageTitle } from '@/components/page-title';
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '@/stores/chat.store';

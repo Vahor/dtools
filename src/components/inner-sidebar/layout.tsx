@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { TooltipProvider } from '../ui/tooltip';
 import { cn } from '@/lib/utils';
 

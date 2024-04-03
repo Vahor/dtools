@@ -4,11 +4,11 @@ import { Link, createFileRoute, useRouter } from '@tanstack/react-router';
 import { useChatStore } from '@/stores/chat.store';
 import {
   ChatForm,
-  ChatFormValues,
+  type ChatFormValues,
   fromChatTabConfig,
   toChatTabConfig,
 } from '@/components/chat/form';
-import { ChatTabConfig, commands } from '@/commands';
+import { commands } from '@/commands';
 import { useMemo } from 'react';
 
 export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$tab_id/edit')({

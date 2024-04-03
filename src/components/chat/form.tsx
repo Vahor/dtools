@@ -5,7 +5,7 @@ import { Form, FormDescription, FormField, FormItem, FormLabel, FormMessage } fr
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 import { Button } from '../ui/button';
-import { ChatTabConfig, ChatTabFilterTree, ChatTabFilterType } from '@/commands';
+import type { ChatTabConfig, ChatTabFilterTree, ChatTabFilterType } from '@/commands';
 import {
   CopyIcon,
   CornerDownRightIcon,
@@ -43,10 +43,6 @@ const filterSchema = z.union([
     value: z.number(),
   }),
 ]);
-
-const filterTreeLeafSchema = z.object({
-  filter: filterSchema,
-});
 
 const filterTreeSchema: z.ZodType<ChatTabFilterTree> = z.union([
   // use lazy

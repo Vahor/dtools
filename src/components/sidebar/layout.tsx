@@ -1,4 +1,4 @@
-import { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 import { TooltipProvider } from '../ui/tooltip';
 
 export const SidebarLayout = (props: PropsWithChildren) => {

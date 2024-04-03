@@ -1,4 +1,4 @@
-import { ChatEvent } from '@/commands';
+import type { ChatEvent } from '@/commands';
 import { readJsonlFile } from '@/lib/entities/utils';
 
 export const readChatHistory = async (tab_id: string): Promise<ChatEvent[]> => {

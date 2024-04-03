@@ -1,4 +1,4 @@
-import { NodeConfig } from '@/commands';
+import { type NodeConfig } from '@/commands';
 import { create } from 'zustand';
 
 interface ConfigStore {

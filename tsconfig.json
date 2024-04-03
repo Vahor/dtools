@@ -22,6 +22,7 @@
     "noUnusedLocals": false, // specta as unused vars
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
     "paths": {
       "@/*": [
         "./src/*"

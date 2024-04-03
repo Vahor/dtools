@@ -1,5 +1,5 @@
-import { TooltipContentProps } from '@radix-ui/react-tooltip';
-import { Button, ButtonProps } from './button';
+import type { TooltipContentProps } from '@radix-ui/react-tooltip';
+import { Button, type ButtonProps } from './button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
 interface ButtonTooltipProps extends ButtonProps {

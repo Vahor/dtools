@@ -1,4 +1,4 @@
-import { ChatTabConfig } from '@/commands';
+import { type ChatTabConfig } from '@/commands';
 import { create } from 'zustand';
 
 interface ChatStore {
