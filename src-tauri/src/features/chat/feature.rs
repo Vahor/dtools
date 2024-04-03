@@ -76,8 +76,9 @@ impl ChatFeature {
         ]
         .iter()
         .map(|name| {
-            let id = node.protocol.get_protocol_id_by_class(name).unwrap();
-            id
+            let protocol = node.protocol.read().unwrap();
+            let id = protocol.get_protocol_id_by_class(name).unwrap();
+            *id
         })
         .collect::<Vec<_>>();
 
@@ -87,7 +88,7 @@ impl ChatFeature {
                 return;
             }
 
-            packet_listner.subscribe(**id, LISTENER_ID, move |packet, node| {
+            packet_listner.subscribe(*id, LISTENER_ID, move |packet, node| {
                 ChatFeature::listener(packet, node);
             });
         });

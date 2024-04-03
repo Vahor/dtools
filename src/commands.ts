@@ -5,20 +5,13 @@ export const commands = {
     return await TAURI_INVOKE('app_ready');
   },
   async createChatTab(config: ChatTabConfig): Promise<string> {
-    return await TAURI_INVOKE('create_chat_tab', {
-      config,
-    });
+    return await TAURI_INVOKE('create_chat_tab', { config });
   },
   async updateChatTabConfig(windowId: string, config: ChatTabConfig): Promise<void> {
-    return await TAURI_INVOKE('update_chat_tab_config', {
-      windowId,
-      config,
-    });
+    return await TAURI_INVOKE('update_chat_tab_config', { windowId, config });
   },
   async getChatTabConfig(windowId: string): Promise<ChatTabConfig | null> {
-    return await TAURI_INVOKE('get_chat_tab_config', {
-      windowId,
-    });
+    return await TAURI_INVOKE('get_chat_tab_config', { windowId });
   },
   async listChatTabs(): Promise<{ [key in string]: ChatTabConfig }> {
     return await TAURI_INVOKE('list_chat_tabs');
@@ -30,9 +23,7 @@ export const commands = {
     return await TAURI_INVOKE('get_last_packet_timestamp');
   },
   async setActiveChatTab(windowId: string | null): Promise<void> {
-    return await TAURI_INVOKE('set_active_chat_tab', {
-      windowId,
-    });
+    return await TAURI_INVOKE('set_active_chat_tab', { windowId });
   },
   async getLastOpenChatTab(): Promise<string | null> {
     return await TAURI_INVOKE('get_last_open_chat_tab');

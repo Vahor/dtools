@@ -168,7 +168,14 @@ fn load_protocol(
 }
 
 impl ProtocolManager {
-    pub fn new(protocol_file_path: impl AsRef<Path>) -> Result<ProtocolManager, ProtocolError> {
+    pub fn new() -> Self {
+        return ProtocolManager {
+            protocol_by_id: HashMap::new(),
+            protocol_id_by_name: HashMap::new(),
+        };
+    }
+
+    pub fn init(&mut self, protocol_file_path: impl AsRef<Path>) -> Result<&Self, ProtocolError> {
         let protocol_by_id = load_protocol(protocol_file_path)?;
         let protocol_id_by_name: HashMap<EventName, EventId> =
             protocol_by_id
@@ -178,13 +185,12 @@ impl ProtocolManager {
                     return map;
                 });
 
-        let instance = ProtocolManager {
-            protocol_by_id,
-            protocol_id_by_name,
-        };
+        info!("Loaded {} protocols", protocol_by_id.len());
 
-        info!("Loaded {} protocols", instance.protocol_by_id.len());
-        return Ok(instance);
+        self.protocol_by_id = protocol_by_id;
+        self.protocol_id_by_name = protocol_id_by_name;
+
+        return Ok(self);
     }
 
     pub fn get_protocol(&self, id: &EventId) -> Option<&ProtocolSchema> {

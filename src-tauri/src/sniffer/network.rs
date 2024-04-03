@@ -195,7 +195,7 @@ impl PacketListener {
                             &metadata.id,
                         ) {
                             let mut parser = PacketParser::from_metadata(&metadata);
-                            match parser.parse(&procol_manager) {
+                            match parser.parse(&procol_manager.read().unwrap()) {
                                 Ok(packet) => {
                                     PacketListener::_notify(
                                         &subscriptions.lock().unwrap(),
