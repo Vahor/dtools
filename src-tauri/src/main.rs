@@ -186,6 +186,7 @@ fn main() {
         // .plugin(tauri_plugin_store::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
         // TODO: use tauri-specta when v2 is released
         .invoke_handler(tauri::generate_handler![

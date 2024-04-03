@@ -33,9 +33,7 @@ function ChatComponent() {
   const tab = tabs[tab_id];
 
   if (!tab) {
-    {
-      /* TODO: handle error */
-    }
+    /* TODO: handle error */
     return <div>Chat not found</div>;
   }
 
