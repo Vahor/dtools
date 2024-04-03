@@ -28,7 +28,7 @@ const getChannels = () => {
   return channels;
 };
 
-export const chatManager: ResourceManager<ChatChannel[]> = {
+export const channelsManager = {
   load: loadChannels,
   get: getChannels,
-};
+} as const;

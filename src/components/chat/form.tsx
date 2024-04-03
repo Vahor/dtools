@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '../ui/select';
-import { chatManager } from '@/lib/entities/channels';
+import { channelsManager } from '@/lib/entities/channels';
 
 const filterSchema = z.union([
   z.object({
@@ -379,7 +379,7 @@ interface FieldUpdateProps {
 }
 
 const ChannelSelect = ({ update, value }: FieldUpdateProps) => {
-  const channels = chatManager.get();
+  const channels = channelsManager.get();
 
   return (
     <Select

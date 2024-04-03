@@ -1,4 +1,4 @@
-import DofusItem from '@/components/dofus/dofus-item';
+import DofusItemIcon from '@/components/dofus/dofus-item-icon';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/dashboard/_layout/home')({
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/dashboard/_layout/home')({
 function Home() {
   return (
     <div>
-      <DofusItem iconId={23003} />
+      <DofusItemIcon iconId={23003} />
     </div>
   )
 }

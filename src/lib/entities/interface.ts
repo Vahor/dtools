@@ -1,4 +1,3 @@
-interface ResourceManager<T> {
+interface ResourceManager {
   load: () => Promise<void>;
-  get: () => T;
 }

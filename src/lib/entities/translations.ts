@@ -1,4 +1,5 @@
-import { chatManager } from './channels';
+import { channelsManager } from './channels';
+import { itemsManager } from './items';
 import { readTranslationsFile } from './utils';
 
 interface TranslationMap {
@@ -18,7 +19,7 @@ export const loadTranslation = async (lang: Languages) => {
     acc[parseInt(key)] = value;
     return acc;
   }, {} as TranslationMap);
-  [chatManager].forEach((manager) => manager.load());
+  [channelsManager, itemsManager].forEach((manager) => manager.load());
 };
 
 export const translate = (id: number) => {

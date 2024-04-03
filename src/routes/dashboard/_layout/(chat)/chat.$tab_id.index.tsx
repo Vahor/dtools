@@ -10,6 +10,9 @@ import { type ChatEvent, type ChatTabConfig, commands, events } from '@/commands
 import { PageTitle } from '@/components/page-title';
 import { useEffect, useRef } from 'react';
 import { useChatStore } from '@/stores/chat.store';
+import { translate } from '@/lib/entities/translations';
+import { itemsManager } from '@/lib/entities/items';
+import ChatMessageObject from '@/components/chat/item';
 
 export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$tab_id/')({
   component: ChatComponent,
@@ -156,10 +159,37 @@ const WelcomeTo = ({ tab }: { tab: ChatTabConfig }) => {
   );
 };
 
+const REPLACEMENT_CHAR = String.fromCharCode(65532);
+
 const ChatMessage = ({ message }: { message: ChatEvent }) => {
   return (
-    <div className="flex w-full">
-      {message.sender_name}: {message.content}
-    </div>
+    <div className="flex flex-col w-full gap-2">
+      <div className="shrink-0">
+        {message.timestamp} : {message.sender_name} :
+      </div>
+      <p className="flex-grow flex-wrap whitespace-pre-wrap">
+        <ChatMessageContent message={message} />
+      </p>
+    </div >
   );
 };
+
+const ChatMessageContent = ({ message }: { message: ChatEvent }) => {
+  const content = message.content.split(REPLACEMENT_CHAR);
+  const objects = message.objects;
+
+  return (
+    <>
+      {content.map((part, index) => {
+        const object = objects?.[index];
+        return (
+          <span key={index}>
+            {part}
+            {object && <ChatMessageObject object={object!} />}
+          </span>
+        );
+      })}
+    </>
+  );
+}
+

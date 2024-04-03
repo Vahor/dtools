@@ -6,17 +6,19 @@ const TRANSLATIONS_DIR = 'translations_json';
 
 export const readEntitiesFile = async (filename: string): Promise<unknown> => {
   const path = `${EXTRACTOR_DIR}/${ENTITIES_DIR}/${filename}`;
+  console.log('Reading entities file', path);
   const exist = await exists(path, { baseDir: BaseDirectory.AppData });
   if (!exist) {
     throw new Error(`Entities file ${filename} does not exist`);
   }
 
-  const content = await readTextFile(path, { baseDir: BaseDirectory.AppData });
+  const content = (await readTextFile(path, { baseDir: BaseDirectory.AppData })).replace(/\bNaN\b/g, 'null');
   return JSON.parse(content);
 };
 
 export const readTranslationsFile = async (filename: string): Promise<unknown> => {
   const path = `${EXTRACTOR_DIR}/${TRANSLATIONS_DIR}/${filename}`;
+  console.log('Reading translations file', path);
   const exist = await exists(path, { baseDir: BaseDirectory.AppData });
   if (!exist) {
     throw new Error(`Translations file ${filename} does not exist`);
@@ -28,6 +30,7 @@ export const readTranslationsFile = async (filename: string): Promise<unknown> =
 
 export const readJsonlFile = async (filename: string): Promise<unknown> => {
   const path = `${filename}`;
+  console.log('Reading jsonl file', path);
   const exist = await exists(path, { baseDir: BaseDirectory.AppData });
   if (!exist) {
     throw new Error(`Jsonl file ${filename} does not exist`);
