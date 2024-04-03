@@ -8,16 +8,19 @@ use tracing::info;
 
 use crate::sniffer::config::NetworkConfig;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct NodeConfig {
-    pub game_version: String,
     pub network: NetworkConfig,
-    #[serde(default)]
-    pub features: FeaturesConfig,
+    pub game_version: Version,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct FeaturesConfig {}
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Version {
+    pub version: String,
+    pub check_for_updates: bool,
+}
 
 struct ConfigLoader<ConfigType> {
     _config_type: std::marker::PhantomData<ConfigType>,
@@ -25,7 +28,7 @@ struct ConfigLoader<ConfigType> {
 
 impl<ConfigType> ConfigLoader<ConfigType>
 where
-    ConfigType: for<'de> Deserialize<'de> + for<'a> Serialize,
+    ConfigType: for<'de> Deserialize<'de> + for<'a> Serialize + specta::Type,
 {
     pub async fn load(path: impl AsRef<Path>) -> Result<ConfigType, ConfigError> {
         let path = path.as_ref();
@@ -48,9 +51,11 @@ where
 impl Default for NodeConfig {
     fn default() -> Self {
         NodeConfig {
-            game_version: "".to_string(),
             network: NetworkConfig::default(),
-            features: FeaturesConfig {},
+            game_version: Version {
+                version: "".to_string(),
+                check_for_updates: false,
+            },
         }
     }
 }
@@ -64,7 +69,7 @@ pub struct Manager<ConfigType> {
 
 impl<ConfigType> Manager<ConfigType>
 where
-    ConfigType: for<'de> Deserialize<'de> + Default + for<'a> Serialize,
+    ConfigType: for<'de> Deserialize<'de> + Default + for<'a> Serialize + specta::Type,
 {
     pub async fn new(
         data_dir: impl AsRef<Path>,

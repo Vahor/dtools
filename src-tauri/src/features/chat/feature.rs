@@ -1,16 +1,18 @@
-use std::sync::Arc;
+use std::io::prelude::*;
+use std::{
+    collections::HashMap,
+    fs::{self, OpenOptions},
+    path::PathBuf,
+    sync::Arc,
+};
 
 use crate::{
-    features::{
-        chat::config::ChatEvent,
-        windows::{WindowBuilder, WindowBuilderOptions, WindowOptions},
-    },
+    features::chat::config::ChatEvent,
     node::Node,
     sniffer::{parser::packet::Packet, protocol::protocol::KnownEvent},
 };
-use tauri::{Manager, WindowEvent};
+use tauri_plugin_notification::NotificationExt;
 use tauri_specta::Event;
-use tracing::{debug, info};
 use uuid::Uuid;
 
 use super::config::ChatViewsConfig;
@@ -18,83 +20,54 @@ use super::config::ChatViewsConfig;
 #[derive(Debug, Clone)]
 pub struct ChatFeature {
     node: Option<Arc<Node>>,
+    dir_path: Option<PathBuf>,
     config: Option<Arc<crate::config::Manager<ChatViewsConfig>>>,
+    pub active_tab: Option<String>,
 }
 
-const WINDOW_PREFIX: &str = "chat-";
+const LISTENER_ID: &str = "chat";
 
 impl ChatFeature {
     pub fn new() -> Self {
         ChatFeature {
             node: None,
             config: None,
+            dir_path: None,
+            active_tab: None,
         }
     }
+
+    pub fn get_last_active_tab(&self) -> Option<String> {
+        let config = self.config.as_ref().unwrap().config.read().unwrap();
+        config.last_tab_id.clone()
+    }
+
     pub async fn set_node(&mut self, node: Arc<Node>) {
         self.node = Some(node);
-        let dir_path = &self.node.as_ref().unwrap().data_dir;
-        let manager =
-            crate::config::Manager::<ChatViewsConfig>::new(dir_path, "chat.views.json").await;
+        let dir_path = &self.node.as_ref().unwrap().data_dir.join("features/chat");
+        fs::create_dir_all(dir_path).unwrap();
+        let manager = crate::config::Manager::<ChatViewsConfig>::new(dir_path, "tabs.json").await;
         self.config = Some(manager.unwrap());
+        self.dir_path = Some(dir_path.to_path_buf());
+        self.init_subscription();
     }
 
-    pub fn load_from_config(&mut self) {
-        let tabs = self
-            .config
-            .as_ref()
-            .unwrap()
-            .config
-            .read()
-            .unwrap()
-            .views
-            .iter()
-            .map(|(id, tab)| (id.clone(), tab.window.clone().unwrap()))
-            .collect::<Vec<_>>();
+    fn append_history(&self, id: &str, event: &ChatEvent) {
+        let to_str = serde_json::to_string(event).unwrap();
+        let dir_path = self.dir_path.as_ref().unwrap().join("history");
+        let history_path = dir_path.join(format!("{}.jsonl", id));
+        fs::create_dir_all(&dir_path).unwrap();
 
-        for (id, option) in tabs {
-            self.create_window_with_options(id, option);
-        }
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(history_path)
+            .unwrap();
+
+        writeln!(file, "{}", to_str).unwrap();
     }
 
-    fn build_window_label(&self, id: &str) -> String {
-        format!("{}{}", WINDOW_PREFIX, id)
-    }
-
-    fn create_window_with_options(
-        &mut self,
-        id: String,
-        options: WindowOptions,
-    ) -> Option<tauri::WebviewWindow> {
-        let node = self.node.as_ref().unwrap();
-
-        let options = WindowBuilderOptions {
-            options,
-            window_label: self.build_window_label(&id),
-            webview: tauri::WebviewUrl::App("features/chat".into()),
-        };
-        match WindowBuilder::prepare(node, options) {
-            Some(builder) => {
-                let window = builder.build().unwrap();
-                self.register_window(&window);
-
-                return Some(window);
-            }
-            None => {
-                return None;
-            }
-        }
-    }
-
-    pub fn create_window(&mut self) {
-        let options = WindowOptions::default();
-        let id = Uuid::new_v4().to_string();
-        self.create_window_with_options(id, options);
-    }
-
-    fn handle_subscription(&self) {
-        let config = self.config.as_ref().unwrap().config.read().unwrap();
-        let has_window = config.views.len() > 0;
-
+    fn init_subscription(&self) {
         let node = self.node.as_ref().unwrap();
         let mut packet_listner = node.packet_listener.lock().unwrap();
         let events = [
@@ -108,33 +81,19 @@ impl ChatFeature {
         })
         .collect::<Vec<_>>();
 
-        if has_window {
-            events.iter().for_each(|id| {
-                let is_subscribed = packet_listner.has_subscriptions_for(id, WINDOW_PREFIX);
-                if is_subscribed {
-                    return;
-                }
+        events.iter().for_each(|id| {
+            let is_subscribed = packet_listner.has_subscriptions_for(id, LISTENER_ID);
+            if is_subscribed {
+                return;
+            }
 
-                packet_listner.subscribe(**id, WINDOW_PREFIX, move |packet, node| {
-                    ChatFeature::listener(packet, node);
-                });
+            packet_listner.subscribe(**id, LISTENER_ID, move |packet, node| {
+                ChatFeature::listener(packet, node);
             });
-        } else {
-            events.iter().for_each(|id| {
-                let is_subscribed = packet_listner.has_subscriptions_for(id, WINDOW_PREFIX);
-                if !is_subscribed {
-                    return;
-                }
-                packet_listner.unsubscribe(id, WINDOW_PREFIX);
-            });
-        }
+        });
     }
 
     fn listener(packet: &Packet, node: &Node) {
-        // iter windows
-        // check if the window is subscribed to the event
-        // if it is, send the packet to the window
-        //
         let chat_feature = node.features.chat.read().unwrap();
         let config = chat_feature.config.as_ref().unwrap().config.read().unwrap();
 
@@ -150,64 +109,84 @@ impl ChatFeature {
                     .map_or(true, |filters| filters.evaluate(&chat_event))
             })
             .collect::<Vec<_>>();
+        let active_window = chat_feature.active_tab.clone();
 
-        for (id, ..) in views.iter() {
-            // TODO: handle tabs
-            let window_label = format!("{}{}", WINDOW_PREFIX, id); // TODO: add function to get window label
-            chat_event
-                .clone()
-                .emit_to(handle, window_label.as_str())
-                .unwrap();
-            debug!("Chat event sent to window {}", window_label);
+        for (id, tab) in views.iter() {
+            let is_active = active_window.as_ref().map_or(false, |active| active == *id);
+            let has_notification = tab.options.notify;
+            let is_persistent = tab.options.keep_history;
+
+            if is_persistent {
+                chat_feature.append_history(&id, &chat_event);
+            }
+
+            if has_notification {
+                handle
+                    .notification()
+                    .builder()
+                    .title(format!("{} in {}", "New chat message", tab.name))
+                    .show()
+                    .unwrap();
+            }
+
+            if is_active {
+                chat_event.clone().emit(handle).unwrap();
+                continue;
+            }
         }
     }
 
-    fn register_window(&mut self, window: &tauri::WebviewWindow) {
-        let id = window.title().expect("Window title").to_string();
-        info!("Chat window with id {} registered", id);
-        self.save_window(&id);
-
-        let config = self.config.as_ref().unwrap().clone();
-        let self_ = self.clone();
-        window.on_window_event(move |event| match event {
-            WindowEvent::CloseRequested { .. } => {
-                info!("Chat window closed");
-                // Remove from config
-                config
-                    .update_config_sync(|config| {
-                        let window_id = &id.to_string().replace(WINDOW_PREFIX, "");
-                        config.views.remove(window_id);
-                    })
-                    .unwrap();
-                self_.handle_subscription();
-            }
-            _ => {}
-        });
-
-        self.handle_subscription();
+    pub fn create_tab(&mut self, config: super::config::ChatTabConfig) -> String {
+        let id = Uuid::new_v4().to_string();
+        self.update_tab_config(&id, config);
+        id
     }
 
-    fn save_window(&mut self, window_id: &String) {
-        let node = self.node.as_ref().unwrap();
-        let window_option = WindowBuilder::export(node, window_id.to_string());
+    pub fn set_active_tab(&mut self, tab_id: Option<String>) {
+        if let Some(tab_id) = tab_id {
+            self.active_tab = Some(tab_id.clone());
+            let config = self.config.as_ref().unwrap();
+            config
+                .update_config_sync(|config| {
+                    config.last_tab_id = Some(tab_id);
+                })
+                .unwrap();
+        } else {
+            self.active_tab = None;
+        }
+    }
 
-        let window_id = window_id.to_string().replace(WINDOW_PREFIX, "");
+    pub fn delete_tab(&mut self, window_id: &String) {
         self.config
-            .as_mut()
+            .as_ref()
             .unwrap()
             .update_config_sync(|config| {
-                let tab = config.views.get_mut(&window_id.to_string());
+                config.views.remove(window_id);
+            })
+            .unwrap();
+    }
+
+    pub fn get_tab_config(&self, window_id: &String) -> Option<super::config::ChatTabConfig> {
+        let config = self.config.as_ref().unwrap().config.read().unwrap();
+        let tab = config.views.get(window_id);
+        tab.cloned()
+    }
+
+    pub fn list_tabs(&self) -> HashMap<String, super::config::ChatTabConfig> {
+        let config = self.config.as_ref().unwrap().config.read().unwrap();
+        config.views.clone()
+    }
+
+    pub fn update_tab_config(&self, window_id: &String, new_config: super::config::ChatTabConfig) {
+        self.config
+            .as_ref()
+            .unwrap()
+            .update_config_sync(|config| {
+                let tab = config.views.get_mut(window_id);
                 if let Some(tab) = tab {
-                    tab.window = Some(window_option);
+                    *tab = new_config;
                 } else {
-                    // This method will be called when creating a new window
-                    // so it's safe to use default value
-                    let new_tab = super::config::ChatTabConfig {
-                        options: super::config::ChatTabOptions::default(),
-                        filters: None,
-                        window: Some(window_option),
-                    };
-                    config.views.insert(window_id.to_string(), new_tab);
+                    config.views.insert(window_id.to_string(), new_config);
                 }
             })
             .unwrap();

@@ -7,7 +7,10 @@ use crate::sniffer::protocol::protocol::{
     EventId, EventName, ProtocolManager, ProtocolSchema, ProtocolVarType,
 };
 
-use super::{metadata::PacketMetadata, wrapper::DataWrapper};
+use super::{
+    metadata::PacketMetadata,
+    wrapper::{DataWrapper, ParseError},
+};
 
 type PacketData = Map<String, Value>;
 
@@ -116,11 +119,11 @@ impl PacketParser {
                     Value::Number(Number::from(value))
                 }
                 ProtocolVarType::VarShort => {
-                    let value = self.data.read_var_short();
+                    let value = self.data.read_var_short()?;
                     Value::Number(Number::from(value))
                 }
                 ProtocolVarType::VarLong => {
-                    let value = self.data.read_var_long();
+                    let value = self.data.read_var_long()?;
                     Value::Number(Number::from(value))
                 }
                 ProtocolVarType::Int => {
@@ -191,6 +194,8 @@ pub enum PacketError {
     UnknownPacketType(EventId),
     #[error("Failed to parse attribute")]
     FailedToParseAttribute(ProtocolVarType),
+    #[error("Error while parsing attribute")]
+    ParseError(#[from] ParseError),
 }
 
 #[cfg(test)]
