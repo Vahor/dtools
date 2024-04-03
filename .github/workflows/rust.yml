@@ -1,0 +1,64 @@
+# from: https://github.com/tauri-apps/tauri-action
+name: Publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - platform: "macos-latest" # for Arm based macs (M1 and above).
+          args: "--target aarch64-apple-darwin"
+        - platform: "macos-latest" # for Intel based macs.
+          args: "--target x86_64-apple-darwin"
+        - platform: "ubuntu-22.04" # for Tauri v1 you could replace this with ubuntu-20.04.
+          args: ""
+        - platform: "windows-latest"
+          args: ""
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' 
+        # libpcap-dev is for the pcap rust dep
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libpcap-dev
+
+      - name: Install dependencies (windows only)
+        if: matrix.platform == 'windows-latest'
+        # Install npcap for pcap rust
+        run: |
+          curl -L -o npcap-installer.exe https://npcap.com/dist/npcap-1.79.exe
+          ./npcap-installer.exe /S
+
+          curl -L -o npcap-sdk.zip https://npcap.com/dist/npcap-sdk-1.13.zip
+          7z x npcap-sdk.zip -oC:\npcap-sdk
+          echo "LIB=$LIB;C:\npcap-sdk\Lib\x64" >> $GITHUB_ENV
+
+      - uses: oven-sh/setup-bun@v1
+      - name: Install dependencies
+        run: bun install
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: app-v__VERSION__ 
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
