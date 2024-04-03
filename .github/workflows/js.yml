@@ -1,0 +1,26 @@
+name: JS 
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-js:
+    name: Check js lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - name: Install dependencies
+        run: bun install
+
+      - name: Typecheck
+        if: always()
+        run: bun run typecheck
+
+      - name: Prettier
+        if: always()
+        run: bun run format:check
+
