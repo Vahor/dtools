@@ -4,8 +4,8 @@
 
 - [x] Parse socket events
   - Note: Some bugs but ok
-- [ ] Chat tabs based on regex
-- [ ] Option to make chat tabs persistant (keep history)
+- [x] Chat tabs based on filters
+- [x] Option to make chat tabs persistant (keep history)
 - [ ] Kamas per session (⬆️ sell, ⬇️  buy)
 - [ ] History for kamas per session (maybe graph for weeks)
 

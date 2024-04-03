@@ -5,7 +5,7 @@ import { Form, FormDescription, FormField, FormItem, FormLabel, FormMessage } fr
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 import { Button } from '../ui/button';
-import { ChatTabFilterTree, ChatTabFilterType } from '@/commands';
+import { ChatTabConfig, ChatTabFilterTree, ChatTabFilterType } from '@/commands';
 import { CopyIcon, CornerDownRightIcon, EllipsisVerticalIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { Separator } from '../ui/separator';
 import { ButtonTooltip } from '../ui/button-tooltip';
@@ -59,12 +59,36 @@ const schema = z.object({
 
 export type ChatFormValues = z.infer<typeof schema>;
 
+export const fromChatTabConfig = (config: ChatTabConfig): ChatFormValues => {
+  return {
+    name: config.name,
+    notification: config.options.notify,
+    keepHistory: config.options.keepHistory,
+    filters: config.filters ?? { and: [] },
+  };
+}
+
+export const toChatTabConfig = (values: ChatFormValues, order: number): ChatTabConfig => {
+  return {
+    name: values.name,
+    options: {
+      notify: values.notification,
+      keepHistory: values.keepHistory,
+    },
+    filters: values.filters,
+    order,
+  }
+}
+
+
+
 interface ChatFormProps {
   initialValues?: ChatFormValues;
   onSubmit: (values: ChatFormValues) => Promise<void>
+  submitText: string;
 }
 
-export const ChatForm = ({ initialValues, onSubmit }: ChatFormProps) => {
+export const ChatForm = ({ initialValues, onSubmit, submitText }: ChatFormProps) => {
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: initialValues ?? {
@@ -149,7 +173,7 @@ export const ChatForm = ({ initialValues, onSubmit }: ChatFormProps) => {
 
         <div>
           <Button variant="filled-primary" type='submit' disabled={isLoading}>
-            Créer le groupe
+            {submitText}
           </Button>
         </div>
       </form>

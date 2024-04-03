@@ -19,7 +19,8 @@ import { Route as DashboardLayoutHomeImport } from './routes/dashboard/_layout/h
 import { Route as DashboardLayoutchatChatImport } from './routes/dashboard/_layout/(chat)/chat'
 import { Route as DashboardLayoutchatChatIndexImport } from './routes/dashboard/_layout/(chat)/chat.index'
 import { Route as DashboardLayoutchatChatNewImport } from './routes/dashboard/_layout/(chat)/chat.new'
-import { Route as DashboardLayoutchatChatTabidImport } from './routes/dashboard/_layout/(chat)/chat.$tab_id'
+import { Route as DashboardLayoutchatChatTabidIndexImport } from './routes/dashboard/_layout/(chat)/chat.$tab_id.index'
+import { Route as DashboardLayoutchatChatTabidEditImport } from './routes/dashboard/_layout/(chat)/chat.$tab_id.edit'
 
 // Create Virtual Routes
 
@@ -65,9 +66,15 @@ const DashboardLayoutchatChatNewRoute = DashboardLayoutchatChatNewImport.update(
   } as any,
 )
 
-const DashboardLayoutchatChatTabidRoute =
-  DashboardLayoutchatChatTabidImport.update({
-    path: '/$tab_id',
+const DashboardLayoutchatChatTabidIndexRoute =
+  DashboardLayoutchatChatTabidIndexImport.update({
+    path: '/$tab_id/',
+    getParentRoute: () => DashboardLayoutchatChatRoute,
+  } as any)
+
+const DashboardLayoutchatChatTabidEditRoute =
+  DashboardLayoutchatChatTabidEditImport.update({
+    path: '/$tab_id/edit',
     getParentRoute: () => DashboardLayoutchatChatRoute,
   } as any)
 
@@ -95,16 +102,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutchatChatImport
       parentRoute: typeof DashboardLayoutImport
     }
-    '/dashboard/_layout/(chat)/chat/$tab_id': {
-      preLoaderRoute: typeof DashboardLayoutchatChatTabidImport
-      parentRoute: typeof DashboardLayoutchatChatImport
-    }
     '/dashboard/_layout/(chat)/chat/new': {
       preLoaderRoute: typeof DashboardLayoutchatChatNewImport
       parentRoute: typeof DashboardLayoutchatChatImport
     }
     '/dashboard/_layout/(chat)/chat/': {
       preLoaderRoute: typeof DashboardLayoutchatChatIndexImport
+      parentRoute: typeof DashboardLayoutchatChatImport
+    }
+    '/dashboard/_layout/(chat)/chat/$tab_id/edit': {
+      preLoaderRoute: typeof DashboardLayoutchatChatTabidEditImport
+      parentRoute: typeof DashboardLayoutchatChatImport
+    }
+    '/dashboard/_layout/(chat)/chat/$tab_id/': {
+      preLoaderRoute: typeof DashboardLayoutchatChatTabidIndexImport
       parentRoute: typeof DashboardLayoutchatChatImport
     }
   }
@@ -118,9 +129,10 @@ export const routeTree = rootRoute.addChildren([
       DashboardLayoutHomeRoute,
       DashboardLayoutSettingsRoute,
       DashboardLayoutchatChatRoute.addChildren([
-        DashboardLayoutchatChatTabidRoute,
         DashboardLayoutchatChatNewRoute,
         DashboardLayoutchatChatIndexRoute,
+        DashboardLayoutchatChatTabidEditRoute,
+        DashboardLayoutchatChatTabidIndexRoute,
       ]),
     ]),
   ]),

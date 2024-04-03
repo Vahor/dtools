@@ -1,15 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react';
-import { useChatStore } from '@/stores/chat.store';
-import { PageTitle } from '@/components/page-title';
-import { ChatEvent, ChatTabConfig, commands, events } from '@/commands';
+import { Link, createFileRoute } from '@tanstack/react-router'
+
 import { readChatHistory } from '@/lib/features/chat/history';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { create } from 'zustand';
+import { ButtonTooltip } from '@/components/ui/button-tooltip';
+import { SettingsIcon } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { ChatEvent, ChatTabConfig, commands, events } from '@/commands';
+import { PageTitle } from '@/components/page-title';
+import { useEffect, useRef } from 'react';
+import { useChatStore } from '@/stores/chat.store';
 
-export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$tab_id')({
+export const Route = createFileRoute('/dashboard/_layout/(chat)/chat/$tab_id/')({
   component: ChatComponent,
-  errorComponent: () => <div>Chat not found</div>,
 });
 
 const useMessageStore = create<{ messages: ChatEvent[], setMessages: (messages: ChatEvent[]) => void, addMessage: (message: ChatEvent) => void, addBulkMessages: (messages: ChatEvent[]) => void }>((set) => ({
@@ -31,14 +34,17 @@ function ChatComponent() {
 
 
   return (
-    <div className='flex flex-col w-full select-auto pb-2'>
+    <div className='flex flex-col w-full pb-2'>
       <PageTitle title={tab.name} description={<TitleDescription />}>
-        <div className='flex gap-2'>
-          <span>scroll lock</span>
-          <span>bell {tab.options.notify ? "on" : "off"}</span>
-          <span>persistant {tab.options.keepHistory ? "on" : "off"}</span>
-          <span>config</span>
-        </div>
+        <TooltipProvider>
+          <div className='flex gap-2'>
+            <ButtonTooltip tooltip='Editer le groupe' asChild size="sm" side="bottom" align='end'>
+              <Link to='/dashboard/chat/$tab_id/edit' params={{ tab_id }}>
+                <SettingsIcon className='size-5' />
+              </Link>
+            </ButtonTooltip>
+          </div>
+        </TooltipProvider>
       </PageTitle>
       <ChatMessageList tab={tab} tab_id={tab_id} key={tab_id} />
     </div >
@@ -87,7 +93,6 @@ const ChatMessageList = ({ tab, tab_id }: { tab: ChatTabConfig, tab_id: string }
     })
 
     return () => {
-      console.log('unmounting chat')
       unlisten.then(f => f());
       commands.setActiveChatTab(null);
     }
@@ -101,7 +106,7 @@ const ChatMessageList = ({ tab, tab_id }: { tab: ChatTabConfig, tab_id: string }
   }, [count, rowVirtualizer])
 
   return (
-    <div className='px-6 contain-strict justify-between h-full pb-6 overflow-y-auto'
+    <div className='px-6 contain-strict justify-between h-full pb-6 overflow-y-auto select-auto'
       ref={scrollParentRef}
     >
       <WelcomeTo tab={tab} />
